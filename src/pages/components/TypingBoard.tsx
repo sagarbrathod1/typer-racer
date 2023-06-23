@@ -27,6 +27,9 @@ const TypingBoard: FunctionComponent<Props> = ({
 
     const paddedChars = String(leftPadding) + String(outgoingChars); // Ensure leftPadding and outgoingChars are strings
 
+    // Check if incomingChars is defined before using substr
+    const displayedIncomingChars = incomingChars ? incomingChars.substr(0, isSm ? 25 : 30) : '';
+
     return (
         <p className="whitespace-pre width-race-me-text w-screen justify-center flex">
             <span className={`text-gray-400`}>{paddedChars.slice(isSm ? -25 : -30)}</span>
@@ -44,7 +47,7 @@ const TypingBoard: FunctionComponent<Props> = ({
                     />
                 )}
             </span>
-            <span onClick={handleTextClick}>{incomingChars.substr(0, isSm ? 25 : 30)}</span>
+            <span onClick={handleTextClick}>{displayedIncomingChars}</span>
         </p>
     );
 };

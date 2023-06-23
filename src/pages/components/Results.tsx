@@ -18,6 +18,10 @@ const Results: FunctionComponent<Props> = ({
     corpus,
     errorCount,
 }) => {
+    // Check if sagarWpm and wpmArray are defined before mapping over them
+    const sagarWpmData = sagarWpm ? sagarWpm.map((e, i) => ({ x: i + 1, y: e })) : [];
+    const wpmArrayData = wpmArray ? wpmArray.map((e, i) => ({ x: i + 1, y: e })) : [];
+
     return (
         <div className="font-mono px-4 sm:px-0">
             <div className="h-64">
@@ -26,11 +30,11 @@ const Results: FunctionComponent<Props> = ({
                         {
                             id: 'Sagar',
                             color: 'hsl(359, 70%, 50%)',
-                            data: sagarWpm.map((e, i) => ({ x: i + 1, y: e })),
+                            data: sagarWpmData,
                         },
                         {
                             id: 'You',
-                            data: wpmArray.map((e, i) => ({ x: i + 1, y: e })),
+                            data: wpmArrayData,
                         },
                     ]}
                     axisLeftName="WPM"
