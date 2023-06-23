@@ -11,8 +11,10 @@ import Results from './components/Results';
 
 export default function TyperRacer() {
     const isSm = useIsSm();
+
     const [wpm, setWpm] = useState<number>(0);
     const [seconds, setTime] = useState<number>(30);
+
     const [leftPadding, setLeftPadding] = useState(new Array(isSm ? 25 : 30).fill(' ').join('')); // initial 50 spaces to keep current char at center
     const [outgoingChars, setOutgoingChars] = useState<string>(''); // characters just typed
     const [incorrectChar, setIncorrectChar] = useState<boolean>(false);
@@ -26,9 +28,7 @@ export default function TyperRacer() {
     const [wpmArray, setWpmArray] = useState<number[]>([]);
     const [errorCount, setErrorCount] = useState<number>(0);
 
-    const {
-        data: { words, sagarWpm, loading },
-    } = useDatabaseInfo();
+    const { words, sagarWpm, loading } = useDatabaseInfo();
 
     const { theme } = useTheme();
 

@@ -24,11 +24,9 @@ const useDatabaseInfo = () => {
     }, [fetchData]);
 
     return {
-        data: {
-            words,
-            sagarWpm,
-            loading,
-        },
+        words,
+        sagarWpm,
+        loading,
     };
 };
 
