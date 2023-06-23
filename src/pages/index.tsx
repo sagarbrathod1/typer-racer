@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import TypingBoard from './components/TypingBoard';
 import useDatabaseInfo from './hooks/useDatabaseInfo';
 import useKeyPress from './hooks/useKeyPress';
-import { useIsSm } from './hooks/useMediaQuery';
+import { useIsSm } from '../hooks/useMediaQuery';
 import Results from './components/Results';
 
 export default function TyperRacer() {
