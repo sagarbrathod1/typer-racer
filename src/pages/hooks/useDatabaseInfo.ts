@@ -15,7 +15,7 @@ const useDatabaseInfo = () => {
         const [info] = data;
 
         setWords(info.words);
-        setSagarWpm(Array.isArray(info.sagar_wpm) ? info.sagar_wpm : [info.sagar_wpm]);
+        setSagarWpm(info.sagar_wpm);
         setLoading(false);
     }, []);
 
