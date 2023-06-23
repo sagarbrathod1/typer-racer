@@ -22,6 +22,10 @@ const Results: FunctionComponent<Props> = ({
     const sagarWpmData = sagarWpm ? sagarWpm.map((e, i) => ({ x: i + 1, y: e })) : [];
     const wpmArrayData = wpmArray ? wpmArray.map((e, i) => ({ x: i + 1, y: e })) : [];
 
+    // Check if corpus is defined before accessing its length property
+    const corpusLength = corpus ? corpus.length : 0;
+    const accuracy = corpusLength ? ((corpusLength - errorCount) / corpusLength).toFixed(2) : 0;
+
     return (
         <div className="font-mono px-4 sm:px-0">
             <div className="h-64">
@@ -52,7 +56,7 @@ const Results: FunctionComponent<Props> = ({
 
             <div className="flex justify-between mb-8">
                 <h3 className="you-text-decoration underline decoration-3">
-                    Your accuracy: {((corpus.length - errorCount) / corpus.length).toFixed(2)}
+                    Your accuracy: {accuracy}
                 </h3>
                 <h3 className="sagar-text-decoration underline decoration-3">
                     Sagar&apos;s accuracy: 1.00
