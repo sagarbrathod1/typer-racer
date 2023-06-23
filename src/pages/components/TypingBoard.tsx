@@ -25,11 +25,11 @@ const TypingBoard: FunctionComponent<Props> = ({
         }
     }, [isSm]);
 
+    const paddedChars = String(leftPadding) + String(outgoingChars); // Ensure leftPadding and outgoingChars are strings
+
     return (
         <p className="whitespace-pre width-race-me-text w-screen justify-center flex">
-            <span className={`text-gray-400`}>
-                {(leftPadding + outgoingChars).slice(isSm ? -25 : -30)}
-            </span>
+            <span className={`text-gray-400`}>{paddedChars.slice(isSm ? -25 : -30)}</span>
             <span
                 className={`${
                     incorrectChar ? 'bg-red-400' : 'bg-[#FF990080]'
