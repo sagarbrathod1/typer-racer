@@ -8,18 +8,25 @@ import useDatabaseInfo from '../hooks/useDatabaseInfo';
 import useKeyPress from '../hooks/useKeyPress';
 import { useIsSm } from '../hooks/useMediaQuery';
 import Results from './components/Results';
+import { GetServerSideProps } from 'next';
+import { buildClerkProps, clerkClient, getAuth } from '@clerk/nextjs/server';
+import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 
-export default function TyperRacer() {
+type Props = {
+    userInfo: {
+        id: string;
+        username: string;
+    };
+};
+
+export default function TyperRacer({ userInfo }: Props) {
     const isSm = useIsSm();
-
     const [wpm, setWpm] = useState<number>(0);
     const [seconds, setTime] = useState<number>(30);
-
     const [leftPadding, setLeftPadding] = useState(new Array(isSm ? 25 : 30).fill(' ').join('')); // initial 50 spaces to keep current char at center
     const [outgoingChars, setOutgoingChars] = useState<string>(''); // characters just typed
     const [incorrectChar, setIncorrectChar] = useState<boolean>(false);
     const [corpus, setCorpus] = useState<string>('');
-    const [corpusId, _setCorpusId] = useState(Math.floor(Math.random() * 3) + 1);
     const [currentChar, setCurrentChar] = useState<string>(corpus.charAt(0));
     const [incomingChars, setIncomingChars] = useState(corpus.substr(1)); // next chars to type
     const [startTime, setStartTime] = useState<number>(0);
@@ -28,7 +35,16 @@ export default function TyperRacer() {
     const [wpmArray, setWpmArray] = useState<number[]>([]);
     const [errorCount, setErrorCount] = useState<number>(0);
 
-    const { words, sagarWpm, loading } = useDatabaseInfo();
+    const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
+    const {
+        loading: loadingLeaderboardData,
+        saveScore,
+        getLeaderboard,
+    } = useLeaderboardDatabaseInfo({
+        username: userInfo.username,
+    });
+
+    const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
 
     const { theme } = useTheme();
 
@@ -76,7 +92,7 @@ export default function TyperRacer() {
             }
 
             // Don't register any keypresses after time is up
-            if (seconds === 0 || loading) {
+            if (seconds === 0 || loadingCorpusData) {
                 return;
             }
 
@@ -139,7 +155,7 @@ export default function TyperRacer() {
                     <div className="font-mono text-center">
                         <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
                         <h3 className="text-center sm:text-left">Time: {seconds}</h3>
-                        {loading ? (
+                        {loadingCorpusData ? (
                             <p className="whitespace-pre width-race-me-text">
                                 {' '}
                                 <span className="text-gray-400">
@@ -194,6 +210,9 @@ export default function TyperRacer() {
                                 wpmArray={wpmArray}
                                 corpus={corpus}
                                 errorCount={errorCount}
+                                leaderboard={leaderboard}
+                                postLeaderboard={saveScore}
+                                submitLeaderboardLoading={loadingLeaderboardData}
                                 theme={theme}
                             />
                         )}
@@ -203,3 +222,16 @@ export default function TyperRacer() {
         </>
     );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+    const { userId } = getAuth(context.req);
+    const user = userId ? await clerkClient.users.getUser(userId) : undefined;
+    const {
+        __clerk_ssr_state: {
+            // @ts-ignore
+            user: userInfo,
+        },
+    } = buildClerkProps(context.req, { user });
+
+    return { props: { userInfo } };
+};
