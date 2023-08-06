@@ -1,19 +1,21 @@
+import { LeaderboardDatabaseModel, TyperRacerModel } from '@/types/models';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { IDatabase } from './idb';
-import { TyperRacerModel } from '@/types/models';
 
-export class Database implements IDatabase<TyperRacerModel> {
+type GeneralModel = TyperRacerModel | LeaderboardDatabaseModel;
+
+export class Database implements IDatabase<GeneralModel> {
     private _client: SupabaseClient<TyperRacerModel> | undefined = undefined;
     private static _instance: Database;
 
     private constructor() {
-        this._client = createClient<TyperRacerModel>(
+        this._client = createClient<GeneralModel>(
             process.env.NEXT_PUBLIC_SUPABASE_URL as string,
             process.env.NEXT_PUBLIC_SUPABASE_API_KEY as string
         );
     }
 
-    public async getRecords(tableName: string, column: string): Promise<TyperRacerModel[]> {
+    public async getRecords(tableName: string, column: string): Promise<GeneralModel[]> {
         if (!this._client) {
             return [];
         }
@@ -22,7 +24,7 @@ export class Database implements IDatabase<TyperRacerModel> {
 
         if (data) {
             // @ts-ignore
-            return data as TyperRacerModel[];
+            return data as GeneralModel[];
         }
 
         return [];
@@ -38,14 +40,32 @@ export class Database implements IDatabase<TyperRacerModel> {
 
     public async updateRecord(
         tableName: string,
-        newValue: TyperRacerModel
-    ): Promise<TyperRacerModel | undefined> {
+        newValue: GeneralModel,
+        whereValueToFind: string,
+        whereColumnName: string
+    ): Promise<GeneralModel | undefined> {
         if (!this._client) {
             return undefined;
         }
 
-        const { data } = await this._client.from(tableName).update(newValue);
+        const { data } = await this._client
+            .from(tableName)
+            .update(newValue)
+            .eq(whereColumnName, whereValueToFind);
 
         return newValue;
+    }
+
+    public async createRecord(
+        tableName: string,
+        newValue: GeneralModel
+    ): Promise<GeneralModel | undefined> {
+        if (!this._client) {
+            return undefined;
+        }
+
+        const { data } = await this._client.from(tableName).insert(newValue);
+
+        return data === null ? undefined : data;
     }
 }
