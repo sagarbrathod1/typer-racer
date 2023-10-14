@@ -105,7 +105,7 @@ const useLeaderboardDatabaseInfo = ({
             });
         });
 
-        listToDisplay.sort((a, b) => (a.adjusted_wpm > b.adjusted_wpm ? 1 : -1));
+        listToDisplay.sort((a, b) => (a.adjusted_wpm < b.adjusted_wpm ? 1 : -1));
         return listToDisplay;
     }, [leaderboard]);
 
