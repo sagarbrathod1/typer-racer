@@ -1,6 +1,10 @@
 import { authMiddleware } from '@clerk/nextjs';
 
-export default authMiddleware();
+const middleware = authMiddleware({
+    ignoredRoutes: ['/((?!api|trpc))(_next.*|.+.[w]+$)', '/api/pingDatabase'],
+});
+
+export default middleware;
 
 export const config = {
     matcher: ['/((?!.*\\..*|_next).*)', '/'],
