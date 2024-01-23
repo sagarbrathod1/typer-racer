@@ -6,7 +6,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function pingDatabase() {
-    const { data, error } = await supabase.from('corpus').select('id').limit(1);
+    const { data, error } = await supabase.from('corpus').select('words').limit(1);
 
     if (error) {
         console.error('Error pinging database', error);
