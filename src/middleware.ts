@@ -1,7 +1,7 @@
 import { authMiddleware } from '@clerk/nextjs';
 
 const middleware = authMiddleware({
-    publicRoutes: ['/api/pingDatabase'],
+    publicRoutes: ['/api/pingDatabase', '/'],
 });
 
 export default middleware;

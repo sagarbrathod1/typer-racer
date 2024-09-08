@@ -4,7 +4,6 @@ import { UserButton } from '@clerk/nextjs';
 
 const ToggleButton = (): JSX.Element => {
     const { theme, setTheme } = useTheme();
-
     const switchTheme = useCallback(() => {
         setTheme(theme === 'dark' ? 'light' : 'dark');
     }, [setTheme, theme]);
@@ -65,7 +64,7 @@ const ToggleButton = (): JSX.Element => {
             </div>
 
             <div className={`${themeClassName} absolute top-4 right-4 z-10`}>
-                <UserButton />
+                <UserButton afterSignOutUrl="/" />
             </div>
         </>
     );
