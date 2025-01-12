@@ -3,7 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_API_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        persistSession: false
+    }
+});
 
 async function pingDatabase() {
     const { data, error } = await supabase.from('corpus').select('words').limit(1);
