@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 
 export default authMiddleware({
     publicRoutes: ['/'],
+    ignoredRoutes: ['/api/pingDatabase'],
     beforeAuth: (req) => {
-        // Skip auth completely for cron job
         if (req.nextUrl.pathname === '/api/pingDatabase' && 
             req.headers.get('x-vercel-cron') === 'true') {
             return NextResponse.next();
