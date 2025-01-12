@@ -21,10 +21,14 @@ async function pingDatabase() {
 }
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
-    const isCronJob = request.headers['x-vercel-cron'] === 'true';
+    const authHeader = request.headers.authorization;
+    const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
 
-    if (!isCronJob) {
-        return response.status(401).json({ success: false, message: 'Unauthorized' });
+    if (authHeader !== expectedAuth) {
+        return response.status(401).json({ 
+            success: false, 
+            message: 'Unauthorized'
+        });
     }
 
     try {
