@@ -17,19 +17,19 @@ async function pingDatabase() {
 }
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
-    const isCronJob = request.headers['x-vercel-cron'];
+    const isCronJob = request.headers['x-vercel-cron'] === 'true';
 
-    if (isCronJob) {
-        try {
-            await pingDatabase();
-            return response.status(200).json({ success: true });
-        } catch (error) {
-            console.error('Cron job ping failed', error);
-            return response
-                .status(500)
-                .json({ success: false, message: 'Failed to ping database' });
-        }
-    } else {
+    if (!isCronJob) {
         return response.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    try {
+        await pingDatabase();
+        return response.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Cron job ping failed', error);
+        return response
+            .status(500)
+            .json({ success: false, message: 'Failed to ping database' });
     }
 }
