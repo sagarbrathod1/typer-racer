@@ -49,11 +49,6 @@ export default function LandingPage() {
                                 Start Typing
                             </button>
                         ) : (
-                            // <SignInButton mode="modal" redirectUrl="/typer-racer">
-                            //     <button className="w-full bg-black dark:bg-white hover:bg-gray-800 text-white dark:text-black font-bold py-4 px-8 rounded-full transform hover:scale-105 text-lg">
-                            //         Sign In
-                            //     </button>
-                            // </SignInButton>
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
                                 <button className="w-full bg-black dark:bg-white hover:bg-gray-800 text-white dark:text-black font-bold py-4 px-8 rounded-full transform hover:scale-105 text-lg transition-colors ease-in-out fade-in">
                                     Sign In

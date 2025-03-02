@@ -31,7 +31,7 @@ const TypingBoard: FunctionComponent<Props> = ({
     const displayedIncomingChars = incomingChars ? incomingChars.substr(0, isSm ? 25 : 30) : '';
 
     return (
-        <p className="whitespace-pre width-race-me-text w-screen justify-center flex">
+        <p className="whitespace-pre width-race-me-text w-screen justify-center flex mt-2">
             <span className={`text-gray-400`}>{paddedChars.slice(isSm ? -25 : -30)}</span>
             <span
                 className={`${

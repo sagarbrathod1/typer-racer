@@ -13,12 +13,89 @@ import { buildClerkProps, clerkClient, getAuth } from '@clerk/nextjs/server';
 import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
+import { createPortal } from 'react-dom';
 
 type Props = {
     userInfo: {
         id: string;
         username: string;
     };
+};
+
+const TypingStats = ({ wpm, seconds }: { wpm: number; seconds: number }) => (
+  <div>
+    <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
+    <h3 className="text-center sm:text-left">Time: {seconds}</h3>
+  </div>
+);
+
+const LoadingCorpus = () => (
+  <p className="whitespace-pre width-race-me-text">
+    {' '}
+    <span className="text-gray-400">
+      {Array(16).fill(' ').join('').slice(-30)}
+    </span>
+    Loading corpus...
+  </p>
+);
+
+const TypingInstructions = ({ startTime }: { startTime: number }) => (
+  <div className={'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')}>
+    <span>^</span>
+    <p>Start typing</p>
+  </div>
+);
+
+const ResetButton = ({ startTime, resetState }: { startTime: number; resetState: () => void }) => (
+  <span className={'' + (startTime && 'cursor-pointer')} onClick={resetState}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className={'h-5 w-5 ml-auto mr-auto mb-4 ' + (!startTime && 'text-gray-400')}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
+    </svg>
+  </span>
+);
+
+const LeaderboardButton = ({ onClick }: { onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="mb-4 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-sm transition-colors"
+  >
+    View Leaderboard
+  </button>
+);
+
+const TryAgainButton = ({ resetState }: { resetState: () => void }) => {
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    if (!mounted) return null;
+    
+    const tryAgainSlot = document.getElementById('try-again-button-slot');
+    if (!tryAgainSlot) return null;
+    
+    return createPortal(
+        <button
+            onClick={resetState}
+            className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
+        >
+            Try again?
+        </button>,
+        tryAgainSlot
+    );
 };
 
 export default function TyperRacer({ userInfo }: Props) {
@@ -39,6 +116,7 @@ export default function TyperRacer({ userInfo }: Props) {
     const { isSignedIn, isLoaded } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [skipMode, setSkipMode] = useState<boolean>(false);
 
     useEffect(() => {
         if (isLoaded) {
@@ -97,16 +175,19 @@ export default function TyperRacer({ userInfo }: Props) {
         return () => {
             clearTimeout(timeoutId);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [seconds, startTime]);
 
     useKeyPress({
         callback: (key) => {
-            // Start the timer
+            if (skipMode) {
+                return;
+            }
+            
             if (!startTime) {
                 setStartTime(currentTime);
             }
 
-            // Don't register any keypresses after time is up
             if (seconds === 0 || loadingCorpusData) {
                 return;
             }
@@ -116,16 +197,13 @@ export default function TyperRacer({ userInfo }: Props) {
 
             if (key === currentChar) {
                 setIncorrectChar(false);
-                // For the first 20 characters, move leftPadding forward
                 if (leftPadding.length > 0) {
                     setLeftPadding(leftPadding.substring(1));
                 }
 
-                // Current char is now in outgoing chars
                 updatedOutgoingChars += currentChar;
                 setOutgoingChars(updatedOutgoingChars);
 
-                // Current char is now the next letter
                 setCurrentChar(incomingChars.charAt(0));
 
                 updatedIncomingChars = incomingChars.substring(1);
@@ -156,7 +234,15 @@ export default function TyperRacer({ userInfo }: Props) {
         setTime(30);
         setWpmArray([]);
         setIncorrectChar(false);
+        setSkipMode(false);
     }, [corpus, isSm]);
+
+    const skipToResults = useCallback(() => {
+        setSkipMode(true);
+        setTime(0);
+        setWpm(0);
+        setWpmArray([]);
+    }, []);
 
     if (isLoading) {
         return <div>Loading...</div>;
@@ -170,18 +256,13 @@ export default function TyperRacer({ userInfo }: Props) {
             </Head>
             <>
                 <ToggleButton />
-                <div className="flex items-center justify-center relative h-screen">
-                    <div className="font-mono text-center">
-                        <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
-                        <h3 className="text-center sm:text-left">Time: {seconds}</h3>
+                <div className="flex items-center justify-center relative min-h-screen pt-8">
+                    <div className="font-mono text-center max-w-3xl w-full px-4 mx-auto">
+                        <div className="mb-4">
+                            <TypingStats wpm={wpm} seconds={seconds} />
+                        </div>
                         {loadingCorpusData ? (
-                            <p className="whitespace-pre width-race-me-text">
-                                {' '}
-                                <span className="text-gray-400">
-                                    {Array(16).fill(' ').join('').slice(-30)}
-                                </span>
-                                Loading corpus...
-                            </p>
+                            <LoadingCorpus />
                         ) : (
                             <TypingBoard
                                 currentChar={currentChar}
@@ -192,36 +273,17 @@ export default function TyperRacer({ userInfo }: Props) {
                                 outgoingChars={outgoingChars}
                             />
                         )}
-                        <div
-                            className={
-                                'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')
-                            }
-                        >
-                            <span>^</span>
-                            <p>Start typing</p>
+                        <div className="h-2 relative">
+                            {seconds !== 0 && !skipMode && (
+                                <>
+                                    <TypingInstructions startTime={startTime} />
+                                    <ResetButton startTime={startTime} resetState={resetState} />
+                                </>
+                            )}
+                            {seconds === 30 && !startTime && (
+                                <LeaderboardButton onClick={skipToResults} />
+                            )}
                         </div>
-                        <span
-                            className={'' + (startTime && 'cursor-pointer')}
-                            onClick={() => resetState()}
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={
-                                    'h-5 w-5 ml-auto mr-auto mb-4 ' +
-                                    (!startTime && 'text-gray-400')
-                                }
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                />
-                            </svg>
-                        </span>
                         {seconds === 0 && (
                             <Results
                                 sagarWpm={sagarWpm}
@@ -233,8 +295,20 @@ export default function TyperRacer({ userInfo }: Props) {
                                 postLeaderboard={saveScore}
                                 submitLeaderboardLoading={loadingLeaderboardData}
                                 theme={theme}
+                                skipMode={skipMode}
                             />
                         )}
+                        {seconds == 0 && !skipMode && <TryAgainButton resetState={resetState} />}
+                        <div className="h-12 flex items-center justify-center mt-2">
+                            {seconds == 0 && skipMode && (
+                                <button
+                                    onClick={resetState}
+                                    className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
+                                >
+                                    Race me!
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </>
