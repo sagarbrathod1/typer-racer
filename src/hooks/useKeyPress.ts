@@ -8,7 +8,13 @@ const useKeyPress = ({ callback }: UseKeyPressProps): string | null => {
     const [keyPressed, setKeyPressed] = useState<string | null>(null);
 
     const downHandler = useCallback(
-        ({ key }: KeyboardEvent) => {
+        (event: KeyboardEvent) => {
+            const { key } = event;
+            // Prevent Firefox's Quick Find feature for apostrophe
+            if (key === "'") {
+                event.preventDefault();
+            }
+            
             if (keyPressed !== key && key.length === 1) {
                 setKeyPressed(key);
                 callback && callback(key);

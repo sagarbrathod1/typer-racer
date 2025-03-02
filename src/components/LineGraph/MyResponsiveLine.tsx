@@ -55,9 +55,14 @@ const MyResponsiveLine: FunctionComponent<Props> = ({
             pointLabelYOffset={-12}
             useMesh={true}
             theme={{
-                background: theme === 'dark' ? '#121212' : '#fff',
+                background: 'transparent',
                 textColor: theme === 'dark' ? '#fff' : '#000',
                 fontSize: 11,
+                grid: {
+                    line: {
+                        stroke: theme === 'dark' ? '#333' : '#ddd',
+                    },
+                },
             }}
             tooltip={({ point }) => {
                 return <ChartTool point={point} theme={theme} />;
