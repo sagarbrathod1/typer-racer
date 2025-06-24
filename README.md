@@ -9,4 +9,4 @@ Test your typing skills against mine!
 | Language  | [TypeScript](https://www.typescriptlang.org/)                |
 | Frameworks| [Next.js](https://nextjs.org/)                               |
 | Auth      | [Clerk](https://clerk.com/)                                  |
-| Database  | [Supabase](https://supabase.com/)                            |
+| Database  | [Convex](https://www.convex.dev/)                            |

@@ -1,39 +1,15 @@
-import { Database } from '@/services/db';
-import { TyperRacerModel, UserModel } from '@/types/models';
-import { useCallback, useEffect, useState } from 'react';
-
-const CORPUS_TABLE_NAME: string = 'corpus';
-const CORPUS_COLUMN_NAMES: string = 'words,sagar_wpm,leaderboard';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { UserModel } from '@/types/models';
 
 const useDatabaseInfo = () => {
-    const [words, setWords] = useState<string>('');
-    const [sagarWpm, setSagarWpm] = useState<string[]>([]);
-    const [leaderboard, setLeaderboard] = useState<UserModel[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-
-    const fetchData = useCallback(async (): Promise<void> => {
-        const data = (await Database.getInstance().getRecords(
-            CORPUS_TABLE_NAME,
-            CORPUS_COLUMN_NAMES
-        )) as TyperRacerModel[];
-
-        const [info] = data;
-
-        setWords(info?.words);
-        setSagarWpm(info?.sagar_wpm);
-        setLeaderboard(info?.leaderboard);
-        setLoading(false);
-    }, []);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
+    const corpus = useQuery(api.corpus.getCorpus);
+    
     return {
-        words,
-        sagarWpm,
-        leaderboard,
-        loading,
+        words: corpus?.words || '',
+        sagarWpm: corpus?.sagar_wpm || [],
+        leaderboard: corpus?.leaderboard || [],
+        loading: corpus === undefined,
     };
 };
 

@@ -19,6 +19,7 @@ type Props = {
     userInfo: {
         id: string;
         username: string;
+        emailAddresses?: Array<{ emailAddress: string }>;
     };
 };
 
@@ -134,7 +135,9 @@ export default function TyperRacer({ userInfo }: Props) {
         saveScore,
         getLeaderboard,
     } = useLeaderboardDatabaseInfo({
+        userId: userInfo.id,
         username: userInfo.username,
+        email: userInfo.emailAddresses?.[0]?.emailAddress,
     });
 
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);

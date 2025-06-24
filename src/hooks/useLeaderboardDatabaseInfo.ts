@@ -1,13 +1,12 @@
-import { Database } from '@/services/db';
-import { LeaderboardDatabaseModel, LeaderboardModel, UserModel } from '@/types/models';
-import React, { useCallback, useEffect, useState } from 'react';
-
-const LEADERBOARD_TABLE_NAME: string = 'leaderboard';
-const LEADERBOARD_COLUMN_NAMES: string = 'username, scores';
-const LEADERBOARD_WHERE_COLUMN_NAME: string = 'username';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { UserModel } from '@/types/models';
+import { useCallback, useMemo } from 'react';
 
 type UseLeaderboardDatabaseInfoParams = {
+    userId: string;
     username: string;
+    email?: string;
 };
 
 export type UseLeaderboardDatabaseInfo = {
@@ -17,112 +16,60 @@ export type UseLeaderboardDatabaseInfo = {
 };
 
 const useLeaderboardDatabaseInfo = ({
+    userId,
     username,
+    email,
 }: UseLeaderboardDatabaseInfoParams): UseLeaderboardDatabaseInfo => {
-    const [leaderboard, setLeaderboard] = useState<LeaderboardModel[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-
-    const fetchLeaderboard = useCallback(async (): Promise<void> => {
-        if (!username) {
-            return;
-        }
-
-        setLoading(true);
-        const records = (await Database.getInstance().getRecords(
-            LEADERBOARD_TABLE_NAME,
-            LEADERBOARD_COLUMN_NAMES
-        )) as LeaderboardDatabaseModel[];
-
-        const formattedRecords = records.map(
-            (record: LeaderboardDatabaseModel): LeaderboardModel => ({
-                username: record.username,
-                scores: JSON.parse(record.scores) as number[],
-            })
-        );
-
-        setLeaderboard(formattedRecords);
-        setLoading(false);
-    }, [username, setLoading]);
-
-    const saveNewRecord = useCallback(async (username: string, score: number): Promise<void> => {
-        setLoading(true);
-        const newRecord: LeaderboardDatabaseModel = {
-            username,
-            scores: JSON.stringify([score]),
-        };
-
-        await Database.getInstance().createRecord(LEADERBOARD_TABLE_NAME, newRecord);
-        setLoading(false);
-    }, []);
-
-    const updateRecord = useCallback(
-        async (record: LeaderboardModel, newScore: number): Promise<void> => {
-            const newScores = [...record.scores, newScore];
-            newScores.sort();
-
-            const recordToUpdate: LeaderboardDatabaseModel = {
-                username: record.username,
-                scores: JSON.stringify(newScores),
-            };
-
-            await Database.getInstance().updateRecord(
-                LEADERBOARD_TABLE_NAME,
-                recordToUpdate,
-                username,
-                LEADERBOARD_WHERE_COLUMN_NAME
-            );
-        },
-        [username]
-    );
+    const leaderboard = useQuery(api.leaderboard.getLeaderboard);
+    const createUser = useMutation(api.leaderboard.createUser);
+    const updateUserScores = useMutation(api.leaderboard.updateUserScores);
+    const currentUser = useQuery(api.leaderboard.getUserByUserId, userId ? { userId } : "skip");
 
     const saveScore = useCallback(
         async (value: number, callback: () => void): Promise<void> => {
-            const preexistingRecord = leaderboard.find(
-                (item: LeaderboardModel) => item.username === username
-            );
+            if (!userId || !username) return;
 
-            if (!preexistingRecord) {
-                await saveNewRecord(username as string, value);
-            } else {
-                await updateRecord(preexistingRecord, value);
+            try {
+                if (!currentUser) {
+                    await createUser({
+                        userId,
+                        username,
+                        email,
+                        initialScore: value,
+                    });
+                } else {
+                    await updateUserScores({
+                        userId,
+                        newScore: value,
+                    });
+                }
+                callback();
+            } catch (error) {
+                console.error('Error saving score:', error);
             }
-
-            await fetchLeaderboard();
-            callback();
         },
-        [leaderboard, username, saveNewRecord, updateRecord, fetchLeaderboard]
+        [userId, username, email, currentUser, createUser, updateUserScores]
     );
 
-    const getLeaderboard = useCallback(() => {
-        const listToDisplay: UserModel[] = [];
+    const getLeaderboard = useMemo(() => {
+        if (!leaderboard) return [];
 
-        leaderboard.forEach((item: LeaderboardModel) => {
+        const listToDisplay: UserModel[] = leaderboard.map((item) => {
             const maxValue = item.scores.reduce((a, b) => Math.max(a, b), -Infinity);
-
-            listToDisplay.push({
+            return {
                 user: item.username,
                 adjusted_wpm: maxValue,
-            });
+            };
         });
 
         listToDisplay.sort((a, b) => (a.adjusted_wpm < b.adjusted_wpm ? 1 : -1));
         return listToDisplay;
     }, [leaderboard]);
 
-    useEffect(() => {
-        fetchLeaderboard();
-
-        const intervalId = setInterval(() => fetchLeaderboard(), 300000);
-
-        return () => {
-            clearInterval(intervalId);
-        };
-    }, []);
-
     return {
-        loading,
+        loading: leaderboard === undefined,
         saveScore,
-        getLeaderboard,
+        getLeaderboard: () => getLeaderboard,
     };
 };
 
