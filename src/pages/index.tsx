@@ -5,6 +5,7 @@ import { SignInButton, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { AngelIcon, DevilIcon } from '@/assets/images';
+import TypingLoader from '@/components/TypingLoader';
 
 export default function LandingPage() {
     const { theme } = useTheme();
@@ -23,7 +24,7 @@ export default function LandingPage() {
     }, [isSignedIn, isLoaded, router]);
 
     if (isLoading) {
-        return <div className="flex justify-center items-center h-screen">Loading...</div>;
+        return <TypingLoader message="Loading Typer Racer..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
     }
 
     return (

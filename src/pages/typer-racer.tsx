@@ -1,5 +1,6 @@
 import { AngelIcon, DevilIcon } from '@/assets/images';
 import ToggleButton from '@/components/ToggleButton/ToggleButton';
+import TypingLoader from '@/components/TypingLoader';
 import { useTheme } from 'next-themes';
 import Head from 'next/head';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -75,7 +76,7 @@ const LeaderboardButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-const TryAgainButton = ({ resetState }: { resetState: () => void }) => {
+const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element | null => {
     const [mounted, setMounted] = useState(false);
     
     useEffect(() => {
@@ -94,7 +95,7 @@ const TryAgainButton = ({ resetState }: { resetState: () => void }) => {
             className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
         >
             Try again?
-        </button>,
+        </button> as any,
         tryAgainSlot
     );
 };
@@ -248,7 +249,7 @@ export default function TyperRacer({ userInfo }: Props) {
     }, []);
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return <TypingLoader message="Clean your keyboard..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
     }
 
     return (
