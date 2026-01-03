@@ -1,7 +1,8 @@
 import MyResponsiveLine from '@/components/LineGraph/MyResponsiveLine';
 import { UserModel } from '@/types/models';
-import { FunctionComponent, useCallback, useRef, useState } from 'react';
+import { FunctionComponent, useCallback, useState } from 'react';
 import Loader from 'react-loader-spinner';
+import { SignInButton } from '@clerk/nextjs';
 
 type Props = {
     sagarWpm: string[];
@@ -14,6 +15,7 @@ type Props = {
     postLeaderboard: (score: number, callback: () => void) => Promise<void>;
     submitLeaderboardLoading: boolean;
     skipMode?: boolean;
+    isGuest?: boolean;
 };
 
 const Results: FunctionComponent<Props> = ({
@@ -27,6 +29,7 @@ const Results: FunctionComponent<Props> = ({
     postLeaderboard,
     submitLeaderboardLoading,
     skipMode = false,
+    isGuest = false,
 }) => {
     const [wasSaved, setWasSaved] = useState<boolean>(false);
 
@@ -91,13 +94,23 @@ const Results: FunctionComponent<Props> = ({
                     );
                 })}
                 <div className="flex flex-col items-center mb-1">
-                    {!skipMode && !wasSaved && wpm > 0 && !submitLeaderboardLoading && (
+                    {!skipMode && !wasSaved && wpm > 0 && !submitLeaderboardLoading && !isGuest && (
                         <button
                             onClick={() => postLeaderboard(wpm, afterSaveCallback)}
                             className="mt-4 mb-6 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
                         >
                             Submit
                         </button>
+                    )}
+                    {!skipMode && isGuest && wpm > 0 && (
+                        <div className="mt-4 mb-6 flex flex-col items-center gap-2">
+                            <SignInButton mode="modal" redirectUrl="/typer-racer">
+                                <button className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors">
+                                    Sign in to save score
+                                </button>
+                            </SignInButton>
+                            <span className="text-sm text-gray-500">Your WPM: {wpm}</span>
+                        </div>
                     )}
                     {wasSaved && <span className="my-2">Your WPM was successfully saved!</span>}
                     {submitLeaderboardLoading && (

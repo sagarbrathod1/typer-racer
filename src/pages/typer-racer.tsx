@@ -21,7 +21,7 @@ type Props = {
         id: string;
         username: string;
         emailAddresses?: Array<{ emailAddress: string }>;
-    };
+    } | null;
 };
 
 const TypingStats = ({ wpm, seconds }: { wpm: number; seconds: number }) => (
@@ -126,16 +126,14 @@ export default function TyperRacer({ userInfo }: Props) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [skipMode, setSkipMode] = useState<boolean>(false);
+    const isGuest = !isSignedIn;
 
     useEffect(() => {
         if (isLoaded) {
-            if (!isSignedIn) {
-                router.push('/');
-            } else {
-                setIsLoading(false);
-            }
+            // Allow both signed-in users and guests to play
+            setIsLoading(false);
         }
-    }, [isSignedIn, isLoaded, router]);
+    }, [isLoaded]);
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
     const {
@@ -143,9 +141,9 @@ export default function TyperRacer({ userInfo }: Props) {
         saveScore,
         getLeaderboard,
     } = useLeaderboardDatabaseInfo({
-        userId: userInfo.id,
-        username: userInfo.username,
-        email: userInfo.emailAddresses?.[0]?.emailAddress,
+        userId: userInfo?.id ?? '',
+        username: userInfo?.username ?? 'Guest',
+        email: userInfo?.emailAddresses?.[0]?.emailAddress,
     });
 
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
@@ -307,6 +305,7 @@ export default function TyperRacer({ userInfo }: Props) {
                                 submitLeaderboardLoading={loadingLeaderboardData}
                                 theme={theme}
                                 skipMode={skipMode}
+                                isGuest={isGuest}
                             />
                         )}
                         {seconds == 0 && !skipMode && <TryAgainButton resetState={resetState} />}
@@ -329,7 +328,13 @@ export default function TyperRacer({ userInfo }: Props) {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
     const { userId } = getAuth(context.req);
-    const user = userId ? await clerkClient.users.getUser(userId) : undefined;
+
+    // Allow guests - return null userInfo if not signed in
+    if (!userId) {
+        return { props: { userInfo: null } };
+    }
+
+    const user = await clerkClient.users.getUser(userId);
     const {
         __clerk_ssr_state: {
             // @ts-ignore

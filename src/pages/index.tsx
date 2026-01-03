@@ -50,11 +50,22 @@ export default function LandingPage() {
                                 Start Typing
                             </button>
                         ) : (
-                            <SignInButton mode="modal" redirectUrl="/typer-racer">
-                                <button className="w-full bg-black dark:bg-white hover:bg-gray-800 text-white dark:text-black font-bold py-4 px-8 rounded-full transform hover:scale-105 text-lg transition-colors ease-in-out fade-in">
-                                    Sign In
+                            <div className="space-y-4">
+                                <SignInButton mode="modal" redirectUrl="/typer-racer">
+                                    <button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black font-bold py-4 px-8 rounded-full transform hover:scale-105 text-lg transition-colors ease-in-out">
+                                        Sign In
+                                    </button>
+                                </SignInButton>
+                                <button
+                                    onClick={() => router.push('/typer-racer')}
+                                    className="w-full border-2 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold py-4 px-8 rounded-full transform hover:scale-105 text-lg transition-colors"
+                                >
+                                    Play as Guest
                                 </button>
-                            </SignInButton>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                                    Sign in to save scores to the leaderboard
+                                </p>
+                            </div>
                         )}
                     </div>
                 </main>
