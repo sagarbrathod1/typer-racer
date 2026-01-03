@@ -22,12 +22,23 @@ import { useIsSm } from '@/hooks/useMediaQuery';
 type Props = {
     userInfo: {
         id: string;
-        username: string;
+        username: string | null;
+        firstName?: string | null;
         emailAddresses?: Array<{ emailAddress: string }>;
     };
 };
 
 type GameState = 'lobby' | 'waiting' | 'countdown' | 'racing' | 'finished';
+
+// Get display name from user info, with fallbacks
+function getDisplayName(userInfo: Props['userInfo']): string {
+    if (userInfo.username) return userInfo.username;
+    if (userInfo.firstName) return userInfo.firstName;
+    if (userInfo.emailAddresses?.[0]?.emailAddress) {
+        return userInfo.emailAddresses[0].emailAddress.split('@')[0];
+    }
+    return 'Player';
+}
 
 export default function Multiplayer({ userInfo }: Props) {
     const { theme } = useTheme();
@@ -35,6 +46,8 @@ export default function Multiplayer({ userInfo }: Props) {
     const router = useRouter();
     const isSm = useIsSm();
     const [isLoading, setIsLoading] = useState(true);
+
+    const displayName = useMemo(() => getDisplayName(userInfo), [userInfo]);
 
     // Game state
     const [gameState, setGameState] = useState<GameState>('lobby');
@@ -187,7 +200,7 @@ export default function Multiplayer({ userInfo }: Props) {
             setError('');
             const result = await createRace({
                 hostId: userInfo.id,
-                hostUsername: userInfo.username,
+                hostUsername: displayName,
             });
             setRaceId(result.raceId);
             setRoomCode(result.code);
@@ -196,7 +209,7 @@ export default function Multiplayer({ userInfo }: Props) {
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Failed to create room');
         }
-    }, [createRace, userInfo.id, userInfo.username]);
+    }, [createRace, userInfo.id, displayName]);
 
     // Join room handler
     const handleJoinRoom = useCallback(async (code: string) => {
@@ -205,7 +218,7 @@ export default function Multiplayer({ userInfo }: Props) {
             const result = await joinRace({
                 code: code.toUpperCase(),
                 guestId: userInfo.id,
-                guestUsername: userInfo.username,
+                guestUsername: displayName,
             });
             setRaceId(result.raceId);
             setRoomCode(code.toUpperCase());
@@ -217,7 +230,7 @@ export default function Multiplayer({ userInfo }: Props) {
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Failed to join room');
         }
-    }, [joinRace, userInfo.id, userInfo.username]);
+    }, [joinRace, userInfo.id, displayName]);
 
     // Start race handler (host only)
     const handleStartRace = useCallback(async () => {
@@ -340,7 +353,7 @@ export default function Multiplayer({ userInfo }: Props) {
                     {(gameState === 'racing' || gameState === 'countdown') && (
                         <>
                             <RaceProgress
-                                myProgress={{ charsTyped: charCount, wpm, username: userInfo.username }}
+                                myProgress={{ charsTyped: charCount, wpm, username: displayName }}
                                 opponentProgress={opponentProgress ? {
                                     charsTyped: opponentProgress.charsTyped,
                                     wpm: opponentProgress.wpm,
@@ -373,7 +386,7 @@ export default function Multiplayer({ userInfo }: Props) {
                         <MultiplayerResults
                             myWpm={myProgress?.wpm || wpm}
                             opponentWpm={opponentProgress?.wpm || 0}
-                            myUsername={userInfo.username}
+                            myUsername={displayName}
                             opponentUsername={opponentUsername || 'Opponent'}
                             opponentDisconnected={opponentProgress?.disconnected || false}
                             onRaceAgain={handleRaceAgain}
