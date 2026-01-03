@@ -1,12 +1,12 @@
 import { useQuery, useMutation } from 'convex/react';
 import { useConvexAuth } from 'convex/react';
 import { api } from '../../convex/_generated/api';
-import { UserModel } from '@/types/models';
+import { UserModel, GameResult } from '@/types/models';
 import { useCallback, useMemo } from 'react';
 
 export type UseLeaderboardDatabaseInfo = {
     loading: boolean;
-    saveScore: (value: number, callback: () => void) => Promise<void>;
+    saveScore: (gameResult: GameResult, callback: () => void) => Promise<void>;
     getLeaderboard: () => UserModel[];
 };
 
@@ -17,18 +17,19 @@ const useLeaderboardDatabaseInfo = (): UseLeaderboardDatabaseInfo => {
     const updateUserScores = useMutation(api.leaderboard.updateUserScores);
 
     const saveScore = useCallback(
-        async (value: number, callback: () => void): Promise<void> => {
+        async (gameResult: GameResult, callback: () => void): Promise<void> => {
             if (!isAuthenticated) return;
 
             try {
                 try {
-                    await updateUserScores({ newScore: value });
+                    await updateUserScores({ gameResult });
                 } catch {
-                    await createUser({ initialScore: value });
+                    await createUser({ gameResult });
                 }
                 callback();
             } catch (error) {
                 console.error('Error saving score:', error);
+                throw error;
             }
         },
         [isAuthenticated, createUser, updateUserScores]

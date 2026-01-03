@@ -12,6 +12,7 @@ import Results from './components/Results';
 import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 import { useUser } from '@clerk/nextjs';
 import { createPortal } from 'react-dom';
+import { GameResult } from '@/types/models';
 
 const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
@@ -151,6 +152,17 @@ export default function TyperRacer() {
 
     const isGuest = !isSignedIn;
 
+    // Build game result for server-side validation
+    const gameResult: GameResult | null = useMemo(() => {
+        if (!game.startTime || !game.endTime || game.skipMode) return null;
+        return {
+            startTime: game.startTime,
+            endTime: game.endTime,
+            charsTyped: game.charCount,
+            corpusLength: (words || '').length,
+        };
+    }, [game.startTime, game.endTime, game.charCount, words, game.skipMode]);
+
     if (isLoading) {
         return (
             <TypingLoader
@@ -216,6 +228,7 @@ export default function TyperRacer() {
                                 theme={theme}
                                 skipMode={game.skipMode}
                                 isGuest={isGuest}
+                                gameResult={gameResult}
                             />
                         )}
                         {game.isGameOver && !game.skipMode && (
