@@ -4,6 +4,7 @@ import TypingLoader from '@/components/TypingLoader';
 import { useTheme } from 'next-themes';
 import Head from 'next/head';
 import { useEffect, useMemo, useState, useRef } from 'react';
+import { useRouter } from 'next/router';
 import TypingBoard from './components/TypingBoard';
 import useDatabaseInfo from '../hooks/useDatabaseInfo';
 import useTypingGame from '../hooks/useTypingGame';
@@ -74,6 +75,15 @@ const LeaderboardButton = ({ onClick }: { onClick: () => void }) => (
     </button>
 );
 
+const MultiplayerButton = ({ onClick }: { onClick: () => void }) => (
+    <button
+        onClick={onClick}
+        className="mb-4 ml-2 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-sm transition-colors"
+    >
+        Multiplayer
+    </button>
+);
+
 const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element | null => {
     const [mounted, setMounted] = useState(false);
 
@@ -102,6 +112,7 @@ const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element
 
 export default function TyperRacer() {
     const isSm = useIsSm();
+    const router = useRouter();
     const { isSignedIn, isLoaded, user } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const raceSpanEndRef = useRef<(() => void) | null>(null);
@@ -224,7 +235,10 @@ export default function TyperRacer() {
                                 </>
                             )}
                             {showLeaderboardButton && (
-                                <LeaderboardButton onClick={game.skipToResults} />
+                                <div className="flex justify-center">
+                                    <LeaderboardButton onClick={game.skipToResults} />
+                                    <MultiplayerButton onClick={() => router.push('/multiplayer')} />
+                                </div>
                             )}
                         </div>
                         {game.isGameOver && (
