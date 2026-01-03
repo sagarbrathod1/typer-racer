@@ -3,10 +3,10 @@ import ToggleButton from '@/components/ToggleButton/ToggleButton';
 import TypingLoader from '@/components/TypingLoader';
 import { useTheme } from 'next-themes';
 import Head from 'next/head';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import TypingBoard from './components/TypingBoard';
 import useDatabaseInfo from '../hooks/useDatabaseInfo';
-import useKeyPress from '../hooks/useKeyPress';
+import useTypingGame from '../hooks/useTypingGame';
 import { useIsSm } from '../hooks/useMediaQuery';
 import Results from './components/Results';
 import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
@@ -30,24 +30,30 @@ const LoadingCorpus = () => (
     </p>
 );
 
-const TypingInstructions = ({ startTime }: { startTime: number }) => (
-    <div className={'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')}>
+const TypingInstructions = ({ visible }: { visible: boolean }) => (
+    <div className={'flex-col justify-center mb-4 ' + (!visible && 'hidden-animate')}>
         <span>^</span>
         <p>Start typing</p>
     </div>
 );
 
-const ResetButton = ({ startTime, resetState }: { startTime: number; resetState: () => void }) => (
+const ResetButton = ({
+    enabled,
+    resetState,
+}: {
+    enabled: boolean;
+    resetState: () => void;
+}) => (
     <button
         onClick={resetState}
-        disabled={!startTime}
+        disabled={!enabled}
         className="block mx-auto mb-4 p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed"
         aria-label="Reset race"
         type="button"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
-            className={'h-5 w-5 ' + (!startTime && 'text-gray-400')}
+            className={'h-5 w-5 ' + (!enabled && 'text-gray-400')}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -100,24 +106,8 @@ const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element
 
 export default function TyperRacer() {
     const isSm = useIsSm();
-    const [wpm, setWpm] = useState<number>(0);
-    const [seconds, setTime] = useState<number>(30);
-    const [leftPadding, setLeftPadding] = useState(new Array(isSm ? 25 : 30).fill(' ').join('')); // initial 50 spaces to keep current char at center
-    const [outgoingChars, setOutgoingChars] = useState<string>(''); // characters just typed
-    const [incorrectChar, setIncorrectChar] = useState<boolean>(false);
-    const [corpus, setCorpus] = useState<string>('');
-    const [currentChar, setCurrentChar] = useState<string>(corpus.charAt(0));
-    const [incomingChars, setIncomingChars] = useState(corpus.substr(1)); // next chars to type
-    const [startTime, setStartTime] = useState<number>(0);
-    const [wordCount, setWordCount] = useState<number>(0);
-    const [charCount, setCharCount] = useState<number>(0);
-    const [wpmArray, setWpmArray] = useState<number[]>([]);
-    const [errorCount, setErrorCount] = useState<number>(0);
-    const [errorMap, setErrorMap] = useState<Record<string, number>>({});
     const { isSignedIn, isLoaded } = useUser();
     const [isLoading, setIsLoading] = useState(true);
-    const [skipMode, setSkipMode] = useState<boolean>(false);
-    const isGuest = !isSignedIn;
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
     const {
@@ -125,6 +115,12 @@ export default function TyperRacer() {
         saveScore,
         getLeaderboard,
     } = useLeaderboardDatabaseInfo();
+
+    const game = useTypingGame({
+        corpus: words || '',
+        isSm,
+        disabled: loadingCorpusData,
+    });
 
     // Check for pending score after sign-in
     useEffect(() => {
@@ -135,10 +131,10 @@ export default function TyperRacer() {
                 const stored = sessionStorage.getItem(PENDING_SCORE_KEY);
                 if (stored) {
                     const score = JSON.parse(stored);
-                    setWpm(score.wpm);
-                    setWpmArray(score.wpmArray || []);
-                    setErrorCount(score.errorCount || 0);
-                    setTime(0);
+                    game.setWpm(score.wpm);
+                    game.setWpmArray(score.wpmArray || []);
+                    game.setErrorCount(score.errorCount || 0);
+                    game.setTime(0);
                     sessionStorage.removeItem(PENDING_SCORE_KEY);
                 }
             }
@@ -148,115 +144,12 @@ export default function TyperRacer() {
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
 
     const { theme } = useTheme();
-
     const tabIcon: string = useMemo(
         () => (theme === 'light' ? AngelIcon.src : DevilIcon.src),
         [theme]
     );
 
-    const currentTime = useCallback(() => {
-        return new Date().getTime();
-    }, []);
-
-    useEffect(() => {
-        if (words && words.trim() !== '') {
-            setCorpus(words);
-            setCurrentChar(words.charAt(0));
-            setIncomingChars(words.substr(1));
-        }
-    }, [words]);
-
-    useEffect(() => {
-        const timeoutId =
-            seconds > 0 && startTime
-                ? setTimeout(() => {
-                      setTime(seconds - 1);
-                      const durationInMinutes = (currentTime() - startTime) / 60000.0;
-                      const newWpm = Number((charCount / 5 / durationInMinutes).toFixed(2));
-                      setWpm(newWpm);
-                      const newWpmArray = wpmArray;
-                      newWpmArray.push(newWpm);
-                      setWpmArray(newWpmArray);
-                  }, 1000)
-                : undefined;
-
-        return () => {
-            clearTimeout(timeoutId);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [seconds, startTime]);
-
-    useKeyPress({
-        callback: (key) => {
-            if (skipMode) {
-                return;
-            }
-
-            if (!startTime) {
-                setStartTime(currentTime);
-            }
-
-            if (seconds === 0 || loadingCorpusData) {
-                return;
-            }
-
-            let updatedOutgoingChars = outgoingChars;
-            let updatedIncomingChars = incomingChars;
-
-            if (key === currentChar) {
-                setIncorrectChar(false);
-                if (leftPadding.length > 0) {
-                    setLeftPadding(leftPadding.substring(1));
-                }
-
-                updatedOutgoingChars += currentChar;
-                setOutgoingChars(updatedOutgoingChars);
-
-                setCurrentChar(incomingChars.charAt(0));
-
-                updatedIncomingChars = incomingChars.substring(1);
-
-                setIncomingChars(updatedIncomingChars);
-
-                setCharCount(charCount + 1);
-
-                if (incomingChars.charAt(0) === ' ') {
-                    setWordCount(wordCount + 1);
-                }
-            } else {
-                setIncorrectChar(true);
-                setErrorCount(errorCount + 1);
-                setErrorMap((prev) => ({
-                    ...prev,
-                    [currentChar]: (prev[currentChar] || 0) + 1,
-                }));
-            }
-        },
-    });
-
-    const resetState = useCallback(() => {
-        setLeftPadding(new Array(isSm ? 25 : 30).fill(' ').join(''));
-        setOutgoingChars('');
-        setCurrentChar(corpus.charAt(0));
-        setIncomingChars(corpus.substr(1));
-        setStartTime(0);
-        setWordCount(0);
-        setCharCount(0);
-        setWpm(0);
-        setTime(30);
-        setWpmArray([]);
-        setIncorrectChar(false);
-        setSkipMode(false);
-        setErrorCount(0);
-        setErrorMap({});
-    }, [corpus, isSm]);
-
-    const skipToResults = useCallback(() => {
-        setSkipMode(true);
-        setTime(0);
-        setWpm(0);
-        setWpmArray([]);
-    }, []);
+    const isGuest = !isSignedIn;
 
     if (isLoading) {
         return (
@@ -266,6 +159,9 @@ export default function TyperRacer() {
             />
         );
     }
+
+    const showGameControls = !game.isGameOver && !game.skipMode;
+    const showLeaderboardButton = game.seconds === 30 && !game.isGameStarted;
 
     return (
         <>
@@ -278,52 +174,57 @@ export default function TyperRacer() {
                 <main className="flex items-center justify-center relative min-h-screen pt-8">
                     <div className="font-mono text-center max-w-3xl w-full px-4 mx-auto">
                         <div className="mb-4">
-                            <TypingStats wpm={wpm} seconds={seconds} />
+                            <TypingStats wpm={game.wpm} seconds={game.seconds} />
                         </div>
                         {loadingCorpusData ? (
                             <LoadingCorpus />
                         ) : (
                             <TypingBoard
-                                currentChar={currentChar}
-                                incomingChars={incomingChars}
-                                incorrectChar={incorrectChar}
+                                currentChar={game.currentChar}
+                                incomingChars={game.incomingChars}
+                                incorrectChar={game.incorrectChar}
                                 isSm={isSm}
-                                leftPadding={leftPadding}
-                                outgoingChars={outgoingChars}
+                                leftPadding={game.leftPadding}
+                                outgoingChars={game.outgoingChars}
                             />
                         )}
                         <div className="h-2 relative">
-                            {seconds !== 0 && !skipMode && (
+                            {showGameControls && (
                                 <>
-                                    <TypingInstructions startTime={startTime} />
-                                    <ResetButton startTime={startTime} resetState={resetState} />
+                                    <TypingInstructions visible={!game.isGameStarted} />
+                                    <ResetButton
+                                        enabled={game.isGameStarted}
+                                        resetState={game.resetState}
+                                    />
                                 </>
                             )}
-                            {seconds === 30 && !startTime && (
-                                <LeaderboardButton onClick={skipToResults} />
+                            {showLeaderboardButton && (
+                                <LeaderboardButton onClick={game.skipToResults} />
                             )}
                         </div>
-                        {seconds === 0 && (
+                        {game.isGameOver && (
                             <Results
                                 sagarWpm={sagarWpm}
-                                wpm={wpm}
-                                wpmArray={wpmArray}
-                                corpus={corpus}
-                                errorCount={errorCount}
-                                errorMap={errorMap}
+                                wpm={game.wpm}
+                                wpmArray={game.wpmArray}
+                                corpus={words || ''}
+                                errorCount={game.errorCount}
+                                errorMap={game.errorMap}
                                 leaderboard={leaderboard}
                                 postLeaderboard={saveScore}
                                 submitLeaderboardLoading={loadingLeaderboardData}
                                 theme={theme}
-                                skipMode={skipMode}
+                                skipMode={game.skipMode}
                                 isGuest={isGuest}
                             />
                         )}
-                        {seconds == 0 && !skipMode && <TryAgainButton resetState={resetState} />}
+                        {game.isGameOver && !game.skipMode && (
+                            <TryAgainButton resetState={game.resetState} />
+                        )}
                         <div className="h-12 flex items-center justify-center mt-2">
-                            {seconds == 0 && skipMode && (
+                            {game.isGameOver && game.skipMode && (
                                 <button
-                                    onClick={resetState}
+                                    onClick={game.resetState}
                                     className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
                                 >
                                     Race me!
