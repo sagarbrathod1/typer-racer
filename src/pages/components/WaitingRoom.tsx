@@ -3,7 +3,9 @@ import { useState } from 'react';
 type Props = {
     roomCode: string;
     isHost: boolean;
-    opponentUsername?: string;
+    myUsername: string;
+    hostUsername: string;
+    guestUsername?: string;
     onStartRace: () => void;
     onLeave: () => void;
 };
@@ -11,7 +13,9 @@ type Props = {
 export default function WaitingRoom({
     roomCode,
     isHost,
-    opponentUsername,
+    myUsername,
+    hostUsername,
+    guestUsername,
     onStartRace,
     onLeave,
 }: Props) {
@@ -62,18 +66,19 @@ export default function WaitingRoom({
                     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded">
                         <span className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            {isHost ? 'You (Host)' : 'Host'}
+                            {hostUsername} {isHost && '(You)'}
+                            <span className="text-xs text-gray-500 ml-1">Host</span>
                         </span>
-                        {isHost && <span className="text-xs text-gray-500">Ready</span>}
+                        <span className="text-xs text-gray-500">Ready</span>
                     </div>
 
                     {/* Guest */}
                     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded">
                         <span className="flex items-center gap-2">
-                            {opponentUsername ? (
+                            {guestUsername ? (
                                 <>
                                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                    {opponentUsername}
+                                    {guestUsername} {!isHost && '(You)'}
                                 </>
                             ) : (
                                 <>
@@ -82,7 +87,7 @@ export default function WaitingRoom({
                                 </>
                             )}
                         </span>
-                        {opponentUsername && <span className="text-xs text-gray-500">Ready</span>}
+                        {guestUsername && <span className="text-xs text-gray-500">Ready</span>}
                     </div>
                 </div>
             </div>
@@ -92,10 +97,10 @@ export default function WaitingRoom({
                 {isHost && (
                     <button
                         onClick={onStartRace}
-                        disabled={!opponentUsername}
+                        disabled={!guestUsername}
                         className="bg-black dark:bg-white text-white dark:text-black font-bold py-3 px-8 rounded-full hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {opponentUsername ? 'Start Race' : 'Waiting for opponent...'}
+                        {guestUsername ? 'Start Race' : 'Waiting for opponent...'}
                     </button>
                 )}
                 {!isHost && (

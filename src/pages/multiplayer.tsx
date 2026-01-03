@@ -128,25 +128,35 @@ export default function Multiplayer({ userInfo }: Props) {
         }
     }, [countdown, gameState, isHost, raceId, startRacing]);
 
-    // Race timer
+    // Race timer - only depends on seconds and gameState to avoid resetting on keypress
     useEffect(() => {
         if (gameState !== 'racing' || !startTime) return;
 
         if (seconds > 0) {
             const timer = setTimeout(() => {
-                setSeconds(seconds - 1);
-                const durationInMinutes = (Date.now() - startTime) / 60000.0;
-                const newWpm = Number((charCount / 5 / durationInMinutes).toFixed(2));
-                setWpm(newWpm);
+                setSeconds(prev => prev - 1);
             }, 1000);
             return () => clearTimeout(timer);
-        } else {
-            // Time's up
-            if (raceId) {
-                finishRace({ raceId, userId: userInfo.id, finalWpm: wpm, charsTyped: charCount });
-            }
         }
-    }, [seconds, gameState, startTime, charCount, wpm, raceId, userInfo.id, finishRace]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [seconds, gameState, startTime]);
+
+    // WPM calculation - separate from timer
+    useEffect(() => {
+        if (gameState !== 'racing' || !startTime || charCount === 0) return;
+
+        const durationInMinutes = (Date.now() - startTime) / 60000.0;
+        const newWpm = Number((charCount / 5 / durationInMinutes).toFixed(2));
+        setWpm(newWpm);
+    }, [charCount, gameState, startTime]);
+
+    // Handle time's up
+    useEffect(() => {
+        if (seconds === 0 && gameState === 'racing' && raceId) {
+            finishRace({ raceId, userId: userInfo.id, finalWpm: wpm, charsTyped: charCount });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [seconds, gameState]);
 
     // Progress update throttle
     const [lastProgressUpdate, setLastProgressUpdate] = useState(0);
@@ -334,7 +344,9 @@ export default function Multiplayer({ userInfo }: Props) {
                         <WaitingRoom
                             roomCode={roomCode}
                             isHost={isHost}
-                            opponentUsername={opponentUsername}
+                            myUsername={displayName}
+                            hostUsername={race?.hostUsername || displayName}
+                            guestUsername={race?.guestUsername}
                             onStartRace={handleStartRace}
                             onLeave={handleLeaveRoom}
                         />
