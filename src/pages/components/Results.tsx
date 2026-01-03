@@ -3,6 +3,7 @@ import { UserModel } from '@/types/models';
 import { FunctionComponent, useCallback, useState } from 'react';
 import Loader from 'react-loader-spinner';
 import { SignInButton } from '@clerk/nextjs';
+import MistakeHeatmap from './MistakeHeatmap';
 
 const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
@@ -13,6 +14,7 @@ type Props = {
     wpm: number;
     corpus: string;
     errorCount: number;
+    errorMap?: Record<string, number>;
     leaderboard: UserModel[];
     postLeaderboard: (score: number, callback: () => void) => Promise<void>;
     submitLeaderboardLoading: boolean;
@@ -27,6 +29,7 @@ const Results: FunctionComponent<Props> = ({
     wpm,
     corpus,
     errorCount,
+    errorMap = {},
     leaderboard,
     postLeaderboard,
     submitLeaderboardLoading,
@@ -81,6 +84,9 @@ const Results: FunctionComponent<Props> = ({
                     Sagar&apos;s accuracy: 1.00
                 </h3>
             </div>
+            {!skipMode && Object.keys(errorMap).length > 0 && (
+                <MistakeHeatmap errorMap={errorMap} theme={theme} />
+            )}
             {!skipMode && (
                 <div className="flex justify-center my-4">
                     <div id="try-again-button-slot"></div>
