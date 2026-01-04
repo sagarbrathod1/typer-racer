@@ -150,7 +150,7 @@ describe('Game State Logic', () => {
         });
 
         it('should not be game over with time remaining', () => {
-            const seconds = 15;
+            const seconds: number = 15;
             const isGameOver = seconds === 0;
             expect(isGameOver).toBe(false);
         });
