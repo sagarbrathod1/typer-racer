@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import useKeyPress from './useKeyPress';
 
 const GAME_DURATION = 30;
@@ -64,6 +64,11 @@ export default function useTypingGame({
     const [errorMap, setErrorMap] = useState<Record<string, number>>({});
     const [skipMode, setSkipMode] = useState<boolean>(false);
 
+    const charCountRef = useRef(charCount);
+    useEffect(() => {
+        charCountRef.current = charCount;
+    }, [charCount]);
+
     // Derived state
     const isGameOver = seconds === 0;
     const isGameStarted = startTime > 0;
@@ -83,13 +88,13 @@ export default function useTypingGame({
         const timeoutId = setTimeout(() => {
             setSeconds((prev) => prev - 1);
             const durationInMinutes = (Date.now() - startTime) / 60000.0;
-            const newWpm = Number((charCount / 5 / durationInMinutes).toFixed(2));
+            const newWpm = Number((charCountRef.current / 5 / durationInMinutes).toFixed(2));
             setWpm(newWpm);
             setWpmArray((prev) => [...prev, newWpm]);
         }, 1000);
 
         return () => clearTimeout(timeoutId);
-    }, [seconds, startTime, charCount]);
+    }, [seconds, startTime]);
 
     // Key press handler
     useKeyPress({
