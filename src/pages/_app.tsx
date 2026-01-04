@@ -4,6 +4,8 @@ import { ThemeProvider } from 'next-themes';
 import { ConvexClientProvider } from '@/lib/convex';
 import type { AppProps, NextWebVitalsMetric } from 'next/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useEffect } from 'react';
+import { initTelemetry } from '@/lib/telemetry';
 
 export function reportWebVitals(metric: NextWebVitalsMetric) {
     const { id, name, value } = metric;
@@ -26,6 +28,10 @@ export function reportWebVitals(metric: NextWebVitalsMetric) {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
+    useEffect(() => {
+        initTelemetry();
+    }, []);
+
     return (
         <ClerkProvider {...pageProps}>
             <ConvexClientProvider>
