@@ -49,13 +49,20 @@ const TypingInstructions = ({ startTime }: { startTime: number }) => (
 );
 
 const ResetButton = ({ startTime, resetState }: { startTime: number; resetState: () => void }) => (
-  <span className={'' + (startTime && 'cursor-pointer')} onClick={resetState}>
+  <button
+    onClick={resetState}
+    disabled={!startTime}
+    className="block mx-auto mb-4 p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed"
+    aria-label="Reset race"
+    type="button"
+  >
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      className={'h-5 w-5 ml-auto mr-auto mb-4 ' + (!startTime && 'text-gray-400')}
+      className={'h-5 w-5 ' + (!startTime && 'text-gray-400')}
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
+      aria-hidden="true"
     >
       <path
         strokeLinecap="round"
@@ -64,7 +71,7 @@ const ResetButton = ({ startTime, resetState }: { startTime: number; resetState:
         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
       />
     </svg>
-  </span>
+  </button>
 );
 
 const LeaderboardButton = ({ onClick }: { onClick: () => void }) => (
@@ -260,7 +267,7 @@ export default function TyperRacer({ userInfo }: Props) {
             </Head>
             <>
                 <ToggleButton />
-                <div className="flex items-center justify-center relative min-h-screen pt-8">
+                <main className="flex items-center justify-center relative min-h-screen pt-8">
                     <div className="font-mono text-center max-w-3xl w-full px-4 mx-auto">
                         <div className="mb-4">
                             <TypingStats wpm={wpm} seconds={seconds} />
@@ -314,7 +321,7 @@ export default function TyperRacer({ userInfo }: Props) {
                             )}
                         </div>
                     </div>
-                </div>
+                </main>
             </>
         </>
     );

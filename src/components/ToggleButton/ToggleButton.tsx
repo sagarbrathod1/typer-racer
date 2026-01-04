@@ -54,12 +54,14 @@ const ToggleButton = (): JSX.Element => {
         <>
             <div className={`${themeClassName} absolute top-4 left-4 z-10`}>
                 <div className="dark:text-gray-200">
-                    <span
+                    <button
                         onClick={switchTheme}
-                        className="active:outline-none focus:outline-none cursor-pointer"
+                        className="p-1 rounded-lg"
+                        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                        type="button"
                     >
                         {theme === 'dark' ? <DarkIcon /> : <LightIcon />}
-                    </span>
+                    </button>
                 </div>
             </div>
 
