@@ -73,10 +73,15 @@ export default function LandingPage() {
 
     if (isLoading || !mounted) {
         return (
-            <TypingLoader
-                message="Loading Typer Racer..."
-                letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
-            />
+            <>
+                <Head>
+                    <title>Typer Racer - Test Your Typing Speed</title>
+                </Head>
+                <TypingLoader
+                    message="Loading Typer Racer..."
+                    letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
+                />
+            </>
         );
     }
 

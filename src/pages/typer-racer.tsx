@@ -3,7 +3,7 @@ import ToggleButton from '@/components/ToggleButton/ToggleButton';
 import TypingLoader from '@/components/TypingLoader';
 import { useTheme } from 'next-themes';
 import Head from 'next/head';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import TypingBoard from './components/TypingBoard';
 import useDatabaseInfo from '../hooks/useDatabaseInfo';
 import useTypingGame from '../hooks/useTypingGame';
@@ -13,6 +13,7 @@ import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 import { useUser } from '@clerk/nextjs';
 import { createPortal } from 'react-dom';
 import { GameResult } from '@/types/models';
+import { raceTracer } from '@/lib/telemetry';
 
 const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
@@ -101,8 +102,9 @@ const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element
 
 export default function TyperRacer() {
     const isSm = useIsSm();
-    const { isSignedIn, isLoaded } = useUser();
+    const { isSignedIn, isLoaded, user } = useUser();
     const [isLoading, setIsLoading] = useState(true);
+    const raceSpanEndRef = useRef<(() => void) | null>(null);
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
     const {
@@ -135,6 +137,24 @@ export default function TyperRacer() {
             }
         }
     }, [isLoaded, isSignedIn]);
+
+    // Track race start
+    useEffect(() => {
+        if (game.isGameStarted && !raceSpanEndRef.current) {
+            raceSpanEndRef.current = raceTracer.startRace(user?.id);
+        }
+    }, [game.isGameStarted, user?.id]);
+
+    // Track race completion
+    useEffect(() => {
+        if (game.isGameOver && !game.skipMode && raceSpanEndRef.current) {
+            const corpusLength = words?.length || 0;
+            const accuracy = corpusLength ? (corpusLength - game.errorCount) / corpusLength : 0;
+            raceTracer.finishRace(game.wpm, accuracy, user?.id);
+            raceSpanEndRef.current();
+            raceSpanEndRef.current = null;
+        }
+    }, [game.isGameOver, game.skipMode, game.wpm, game.errorCount, words?.length, user?.id]);
 
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
 

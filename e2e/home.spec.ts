@@ -4,22 +4,32 @@ test.describe('Home Page', () => {
     test('should display the landing page', async ({ page }) => {
         await page.goto('/');
 
-        // Check that the page loads
+        // Check that the page loads with the title (works even during loading state)
         await expect(page).toHaveTitle(/Typer Racer/i);
     });
 
     test('should have a sign in option', async ({ page }) => {
         await page.goto('/');
 
-        // Look for sign in button specifically (avoid matching paragraph text)
+        // Wait for page to finish loading (wait for the main heading to appear)
+        await expect(page.getByRole('heading', { name: /Typer Racer/i })).toBeVisible({
+            timeout: 15000,
+        });
+
+        // Look for sign in button specifically
         const signInButton = page.getByRole('button', { name: /sign in/i });
 
-        // The button should be visible or there should be a way to authenticate
-        await expect(signInButton.or(page.locator('[class*="clerk"]'))).toBeVisible();
+        // The button should be visible
+        await expect(signInButton).toBeVisible();
     });
 
     test('should toggle dark/light mode', async ({ page }) => {
         await page.goto('/');
+
+        // Wait for page to finish loading
+        await expect(page.getByRole('heading', { name: /Typer Racer/i })).toBeVisible({
+            timeout: 15000,
+        });
 
         // Find the toggle button
         const toggleButton = page
@@ -27,18 +37,16 @@ test.describe('Home Page', () => {
             .filter({ has: page.locator('svg') })
             .first();
 
-        if (await toggleButton.isVisible()) {
-            // Get initial theme
-            const htmlElement = page.locator('html');
-            const initialClass = await htmlElement.getAttribute('class');
+        // Get initial theme
+        const htmlElement = page.locator('html');
+        const initialClass = await htmlElement.getAttribute('class');
 
-            // Click toggle
-            await toggleButton.click();
+        // Click toggle
+        await toggleButton.click();
 
-            // Theme should change
-            const newClass = await htmlElement.getAttribute('class');
-            expect(newClass).not.toBe(initialClass);
-        }
+        // Theme should change
+        const newClass = await htmlElement.getAttribute('class');
+        expect(newClass).not.toBe(initialClass);
     });
 });
 
