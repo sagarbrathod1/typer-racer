@@ -6,11 +6,12 @@ import { convex } from '@/lib/convex';
 import type { AppProps, NextWebVitalsMetric } from 'next/app';
 
 export function reportWebVitals(metric: NextWebVitalsMetric) {
-    const { id, name, value, rating } = metric;
+    const { id, name, value } = metric;
+    const rating = (metric as NextWebVitalsMetric & { rating?: string }).rating;
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-        console.log(`[Web Vitals] ${name}: ${value.toFixed(2)} (${rating})`);
+        console.log(`[Web Vitals] ${name}: ${value.toFixed(2)}${rating ? ` (${rating})` : ''}`);
     }
 
     // Send to analytics endpoint if available
