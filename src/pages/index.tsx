@@ -9,7 +9,7 @@ import TypingLoader from '@/components/TypingLoader';
 
 const TypingHero = () => {
     const [text, setText] = useState('');
-    const fullText = 'Race. Compete. Improve.';
+    const fullText = 'Think you can beat me?';
 
     useEffect(() => {
         let index = 0;
@@ -71,7 +71,7 @@ export default function LandingPage() {
         <>
             <Head>
                 <title>Typer Racer - Test Your Typing Speed</title>
-                <meta name="description" content="Race against friends, climb the leaderboard, and improve your typing speed with real-time multiplayer typing races." />
+                <meta name="description" content="Think you can type faster than me? Race against my score, challenge friends in real-time multiplayer, and climb the global leaderboard." />
                 <link rel="icon" href={theme === 'light' ? AngelIcon.src : DevilIcon.src} />
             </Head>
             <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
@@ -85,8 +85,8 @@ export default function LandingPage() {
                         </h1>
                         <TypingHero />
                         <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
-                            Challenge yourself in solo mode or race friends in real-time multiplayer.
-                            Track your progress and climb the global leaderboard.
+                            Race against me and see how your typing stacks up.
+                            Or challenge your friends in real-time multiplayer.
                         </p>
 
                         {/* CTAs */}
@@ -95,7 +95,7 @@ export default function LandingPage() {
                                 onClick={() => router.push('/typer-racer')}
                                 className="bg-black dark:bg-white text-white dark:text-black font-semibold py-4 px-8 rounded-full hover:opacity-80 transition-opacity text-lg"
                             >
-                                Play Now
+                                Race Me
                             </button>
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
                                 <button className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-4 px-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-lg">
@@ -107,24 +107,24 @@ export default function LandingPage() {
                         {/* Features Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
                             <FeatureCard
-                                icon={<span>🎯</span>}
-                                title="Solo Practice"
-                                description="30-second typing tests with real-time WPM tracking and accuracy stats."
+                                icon={<span>⌨️</span>}
+                                title="Race Me"
+                                description="30 seconds to beat my score. Real-time WPM tracking and accuracy comparison."
                             />
                             <FeatureCard
                                 icon={<span>🏁</span>}
-                                title="1v1 Multiplayer"
-                                description="Race friends in real-time with room codes. See their progress live."
+                                title="Race Friends"
+                                description="1v1 multiplayer with room codes. See their progress live as you type."
                             />
                             <FeatureCard
                                 icon={<span>🏆</span>}
-                                title="Global Leaderboard"
+                                title="Leaderboard"
                                 description="Compete for the top spot. Sign in to save your scores."
                             />
                             <FeatureCard
                                 icon={<span>📊</span>}
-                                title="Mistake Analytics"
-                                description="See which characters trip you up with detailed error heatmaps."
+                                title="Mistake Heatmap"
+                                description="See which characters trip you up most and improve your weak spots."
                             />
                         </div>
                     </div>
