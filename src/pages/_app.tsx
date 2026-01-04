@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes';
 import { ConvexProvider } from 'convex/react';
 import { convex } from '@/lib/convex';
 import type { AppProps, NextWebVitalsMetric } from 'next/app';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export function reportWebVitals(metric: NextWebVitalsMetric) {
     const { id, name, value } = metric;
@@ -30,7 +31,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <ClerkProvider {...pageProps}>
             <ConvexProvider client={convex}>
                 <ThemeProvider defaultTheme="light" attribute="class" enableSystem={false}>
-                    <Component {...pageProps} />
+                    <ErrorBoundary>
+                        <Component {...pageProps} />
+                    </ErrorBoundary>
                 </ThemeProvider>
             </ConvexProvider>
         </ClerkProvider>
