@@ -1,4 +1,5 @@
 import { NextPageContext } from 'next';
+import Link from 'next/link';
 
 interface ErrorProps {
     statusCode?: number;
@@ -26,12 +27,12 @@ function Error({ statusCode }: ErrorProps) {
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
                     {message}
                 </p>
-                <a
+                <Link
                     href="/"
                     className="inline-block px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded hover:opacity-80 transition-opacity"
                 >
                     Go home
-                </a>
+                </Link>
             </div>
         </div>
     );
