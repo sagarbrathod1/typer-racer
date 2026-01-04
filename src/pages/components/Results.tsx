@@ -37,6 +37,7 @@ const Results: FunctionComponent<Props> = ({
     isGuest = false,
 }) => {
     const [wasSaved, setWasSaved] = useState<boolean>(false);
+    const [showHeatmap, setShowHeatmap] = useState<boolean>(false);
 
     const afterSaveCallback = useCallback(() => {
         setWasSaved(true);
@@ -85,7 +86,15 @@ const Results: FunctionComponent<Props> = ({
                 </h3>
             </div>
             {!skipMode && Object.keys(errorMap).length > 0 && (
-                <MistakeHeatmap errorMap={errorMap} theme={theme} />
+                <div className="mt-4">
+                    <button
+                        onClick={() => setShowHeatmap(!showHeatmap)}
+                        className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline"
+                    >
+                        {showHeatmap ? 'Hide trouble spots' : 'Show trouble spots'}
+                    </button>
+                    {showHeatmap && <MistakeHeatmap errorMap={errorMap} theme={theme} />}
+                </div>
             )}
             {!skipMode && (
                 <div className="flex justify-center my-4">

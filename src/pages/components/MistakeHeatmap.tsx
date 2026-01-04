@@ -39,23 +39,23 @@ const MistakeHeatmap: FunctionComponent<Props> = ({ errorMap = {}, theme }) => {
     };
 
     return (
-        <div className="mt-6 mb-4">
-            <h3 className="text-sm font-medium mb-3 text-gray-600 dark:text-gray-400">
-                Trouble spots
-            </h3>
-            <div className="space-y-2">
+        <div className="mt-3 mb-4">
+            <h4 className="text-xs text-gray-500 dark:text-gray-500 mb-2">
+                Top mistakes
+            </h4>
+            <div className="space-y-1">
                 {sortedErrors.map(([char, count]) => (
                     <div key={char} className="flex items-center gap-2">
-                        <span className="w-12 text-right font-mono text-sm">
+                        <span className="w-10 text-right font-mono text-xs">
                             {formatChar(char)}
                         </span>
-                        <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
                             <div
                                 className={`h-full ${getBarColor(count)} transition-all duration-300`}
                                 style={{ width: `${(count / maxErrors) * 100}%` }}
                             />
                         </div>
-                        <span className="w-8 text-sm text-gray-500 dark:text-gray-400">
+                        <span className="w-6 text-xs text-gray-500 dark:text-gray-400">
                             {count}
                         </span>
                     </div>
