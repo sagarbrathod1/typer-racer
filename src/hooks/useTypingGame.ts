@@ -95,7 +95,6 @@ export default function useTypingGame({
             setWpm(newWpm);
             setWpmArray((prev) => [...prev, newWpm]);
 
-            // Capture end time when game finishes
             if (newSeconds === 0) {
                 setEndTime(Date.now());
             }

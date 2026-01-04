@@ -38,13 +38,7 @@ const TypingInstructions = ({ visible }: { visible: boolean }) => (
     </div>
 );
 
-const ResetButton = ({
-    enabled,
-    resetState,
-}: {
-    enabled: boolean;
-    resetState: () => void;
-}) => (
+const ResetButton = ({ enabled, resetState }: { enabled: boolean; resetState: () => void }) => (
     <button
         onClick={resetState}
         disabled={!enabled}
@@ -152,7 +146,6 @@ export default function TyperRacer() {
 
     const isGuest = !isSignedIn;
 
-    // Build game result for server-side validation
     const gameResult: GameResult | null = useMemo(() => {
         if (!game.startTime || !game.endTime || game.skipMode) return null;
         return {

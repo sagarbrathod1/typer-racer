@@ -6,46 +6,44 @@ const GAME_DURATION_SECONDS = 30;
 const DURATION_TOLERANCE_MS = 2000; // Allow 2 second tolerance for network latency
 
 type GameResult = {
-  startTime: number;
-  endTime: number;
-  charsTyped: number;
-  corpusLength: number;
+    startTime: number;
+    endTime: number;
+    charsTyped: number;
+    corpusLength: number;
 };
 
 function validateAndCalculateWPM(gameResult: GameResult): number {
-  const { startTime, endTime, charsTyped, corpusLength } = gameResult;
+    const { startTime, endTime, charsTyped, corpusLength } = gameResult;
 
-  // Validate duration (should be ~30 seconds)
-  const durationMs = endTime - startTime;
-  const expectedDurationMs = GAME_DURATION_SECONDS * 1000;
+    const durationMs = endTime - startTime;
+    const expectedDurationMs = GAME_DURATION_SECONDS * 1000;
 
-  if (durationMs < expectedDurationMs - DURATION_TOLERANCE_MS) {
-    throw new Error("Invalid game duration: too short");
-  }
+    if (durationMs < expectedDurationMs - DURATION_TOLERANCE_MS) {
+        throw new Error('Invalid game duration: too short');
+    }
 
-  if (durationMs > expectedDurationMs + DURATION_TOLERANCE_MS * 5) {
-    throw new Error("Invalid game duration: too long");
-  }
+    if (durationMs > expectedDurationMs + DURATION_TOLERANCE_MS * 5) {
+        throw new Error('Invalid game duration: too long');
+    }
 
-  // Validate chars typed
-  if (charsTyped < 0) {
-    throw new Error("Invalid character count: negative");
-  }
+    if (charsTyped < 0) {
+        throw new Error('Invalid character count: negative');
+    }
 
-  if (charsTyped > corpusLength) {
-    throw new Error("Invalid character count: exceeds corpus length");
-  }
+    if (charsTyped > corpusLength) {
+        throw new Error('Invalid character count: exceeds corpus length');
+    }
 
-  // Calculate WPM server-side (1 word = 5 characters)
-  const durationMinutes = durationMs / 60000;
-  const wpm = Math.round((charsTyped / 5) / durationMinutes * 100) / 100;
+    const durationMinutes = durationMs / 60000;
+    const wpm = Math.round((charsTyped / 5 / durationMinutes) * 100) / 100;
 
-  // Reject impossible scores
-  if (wpm > MAX_REASONABLE_WPM) {
-    throw new Error(`Invalid WPM: ${wpm} exceeds maximum reasonable WPM of ${MAX_REASONABLE_WPM}`);
-  }
+    if (wpm > MAX_REASONABLE_WPM) {
+        throw new Error(
+            `Invalid WPM: ${wpm} exceeds maximum reasonable WPM of ${MAX_REASONABLE_WPM}`
+        );
+    }
 
-  return wpm;
+    return wpm;
 }
 
 export const getLeaderboard = query({
@@ -86,7 +84,6 @@ export const createUser = mutation({
             throw new Error('Must be authenticated to save score');
         }
 
-        // Validate and calculate WPM server-side
         const validatedWpm = validateAndCalculateWPM(args.gameResult);
 
         const userId = identity.subject;
@@ -151,7 +148,6 @@ export const updateUserScores = mutation({
             throw new Error('Must be authenticated to save score');
         }
 
-        // Validate and calculate WPM server-side
         const validatedWpm = validateAndCalculateWPM(args.gameResult);
 
         const userId = identity.subject;
