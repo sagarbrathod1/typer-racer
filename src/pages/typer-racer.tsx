@@ -130,7 +130,6 @@ export default function TyperRacer() {
         if (isLoaded) {
             setIsLoading(false);
 
-            // Restore results state after sign-in so user can click Submit
             if (isSignedIn && typeof window !== 'undefined') {
                 const stored = sessionStorage.getItem(PENDING_SCORE_KEY);
                 if (stored) {
@@ -138,7 +137,7 @@ export default function TyperRacer() {
                     setWpm(score.wpm);
                     setWpmArray(score.wpmArray || []);
                     setErrorCount(score.errorCount || 0);
-                    setTime(0); // Show results
+                    setTime(0);
                     sessionStorage.removeItem(PENDING_SCORE_KEY);
                 }
             }
