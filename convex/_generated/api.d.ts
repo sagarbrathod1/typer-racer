@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as corpus from "../corpus.js";
 import type * as leaderboard from "../leaderboard.js";
+import type * as sessions from "../sessions.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -27,6 +28,7 @@ import type * as leaderboard from "../leaderboard.js";
 declare const fullApi: ApiFromModules<{
   corpus: typeof corpus;
   leaderboard: typeof leaderboard;
+  sessions: typeof sessions;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -18,4 +18,12 @@ export default defineSchema({
     })
         .index('by_userId', ['userId'])
         .index('by_username', ['username']),
+
+    sessions: defineTable({
+        userId: v.string(),
+        username: v.string(),
+        wpm: v.number(),
+        accuracy: v.number(),
+        createdAt: v.number(),
+    }).index('by_userId', ['userId']),
 });
