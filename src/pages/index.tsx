@@ -43,10 +43,15 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; titl
 );
 
 export default function LandingPage() {
-    const { theme } = useTheme();
+    const { theme, resolvedTheme } = useTheme();
     const { isSignedIn, isLoaded } = useUser();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (isLoaded) {
@@ -58,21 +63,18 @@ export default function LandingPage() {
         }
     }, [isSignedIn, isLoaded, router]);
 
-    if (isLoading) {
-        return (
-            <TypingLoader
-                message="Loading Typer Racer..."
-                letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
-            />
-        );
+    if (isLoading || !mounted) {
+        return <TypingLoader message="Loading Typer Racer..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
     }
+
+    const currentTheme = resolvedTheme || theme;
 
     return (
         <>
             <Head>
                 <title>Typer Racer - Test Your Typing Speed</title>
                 <meta name="description" content="Think you can type faster than me? Race against my score, challenge friends in real-time multiplayer, and climb the global leaderboard." />
-                <link rel="icon" href={theme === 'light' ? AngelIcon.src : DevilIcon.src} />
+                <link rel="icon" href={currentTheme === 'light' ? AngelIcon.src : DevilIcon.src} />
             </Head>
             <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
                 <ToggleButton />
