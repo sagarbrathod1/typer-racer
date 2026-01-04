@@ -35,7 +35,7 @@ const TypingHero = () => {
 };
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
-    <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+    <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700">
         <div className="text-3xl mb-3">{icon}</div>
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
         <p className="text-gray-600 dark:text-gray-400 text-sm">{description}</p>
