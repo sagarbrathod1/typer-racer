@@ -101,7 +101,7 @@ const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element
 
 export default function TyperRacer() {
     const isSm = useIsSm();
-    const { isSignedIn, isLoaded } = useUser();
+    const { user, isSignedIn, isLoaded } = useUser();
     const [isLoading, setIsLoading] = useState(true);
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
@@ -222,6 +222,8 @@ export default function TyperRacer() {
                                 skipMode={game.skipMode}
                                 isGuest={isGuest}
                                 gameResult={gameResult}
+                                userId={user?.id}
+                                username={user?.username ?? user?.firstName ?? undefined}
                             />
                         )}
                         {game.isGameOver && !game.skipMode && (

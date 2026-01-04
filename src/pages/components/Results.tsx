@@ -1,9 +1,13 @@
 import MyResponsiveLine from '@/components/LineGraph/MyResponsiveLine';
 import { UserModel, GameResult } from '@/types/models';
-import { FunctionComponent, useCallback, useState } from 'react';
+import { FunctionComponent, useCallback, useState, useEffect } from 'react';
 import Loader from 'react-loader-spinner';
 import { SignInButton } from '@clerk/nextjs';
 import MistakeHeatmap from './MistakeHeatmap';
+import ShareableCard from './ShareableCard';
+import SessionHistory from './SessionHistory';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 
 const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
@@ -21,6 +25,8 @@ type Props = {
     skipMode?: boolean;
     isGuest?: boolean;
     gameResult: GameResult | null;
+    userId?: string;
+    username?: string;
 };
 
 const Results: FunctionComponent<Props> = ({
@@ -37,10 +43,14 @@ const Results: FunctionComponent<Props> = ({
     skipMode = false,
     isGuest = false,
     gameResult,
+    userId,
+    username,
 }) => {
     const [wasSaved, setWasSaved] = useState<boolean>(false);
     const [showHeatmap, setShowHeatmap] = useState<boolean>(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [sessionSaved, setSessionSaved] = useState<boolean>(false);
+    const saveSession = useMutation(api.sessions.saveSession);
 
     const afterSaveCallback = useCallback(() => {
         setWasSaved(true);
@@ -58,13 +68,25 @@ const Results: FunctionComponent<Props> = ({
         }
     }, [gameResult, postLeaderboard, afterSaveCallback]);
 
+    const sagarWpmLastElement = sagarWpm ? sagarWpm[sagarWpm.length - 1] : '';
+    const corpusLength = corpus ? corpus.length : 0;
+    const accuracy = corpusLength ? ((corpusLength - errorCount) / corpusLength) : 0;
+    const accuracyString = accuracy.toFixed(2);
+    const didBeatSagar = wpm > parseFloat(sagarWpmLastElement || '0');
+
+    useEffect(() => {
+        if (!skipMode && userId && username && wpm > 0 && !sessionSaved) {
+            saveSession({
+                userId,
+                username,
+                wpm,
+                accuracy,
+            }).then(() => setSessionSaved(true));
+        }
+    }, [skipMode, userId, username, wpm, accuracy, sessionSaved, saveSession]);
+
     const sagarWpmData = sagarWpm ? sagarWpm.map((e, i) => ({ x: i + 1, y: e })) : [];
     const wpmArrayData = wpmArray ? wpmArray.map((e, i) => ({ x: i + 1, y: e })) : [];
-
-    const sagarWpmLastElement = sagarWpm ? sagarWpm[sagarWpm.length - 1] : '';
-
-    const corpusLength = corpus ? corpus.length : 0;
-    const accuracy = corpusLength ? ((corpusLength - errorCount) / corpusLength).toFixed(2) : 0;
 
     return (
         <div className="font-mono px-4 sm:px-0">
@@ -94,7 +116,7 @@ const Results: FunctionComponent<Props> = ({
             </div>
             <div className="flex justify-between mb-4">
                 <h3 className="you-text-decoration underline decoration-3">
-                    Your accuracy: {accuracy}
+                    Your accuracy: {accuracyString}
                 </h3>
                 <h3 className="sagar-text-decoration underline decoration-3">
                     Sagar&apos;s accuracy: 1.00
@@ -176,6 +198,21 @@ const Results: FunctionComponent<Props> = ({
                     )}
                 </div>
             </div>
+
+            {!skipMode && wpm > 0 && username && (
+                <ShareableCard
+                    wpm={wpm}
+                    accuracy={accuracyString}
+                    username={username}
+                    theme={theme}
+                    didBeatSagar={didBeatSagar}
+                    sagarWpm={sagarWpmLastElement}
+                />
+            )}
+
+            {userId && (
+                <SessionHistory userId={userId} theme={theme} />
+            )}
         </div>
     );
 };
