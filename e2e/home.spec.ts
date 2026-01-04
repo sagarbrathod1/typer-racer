@@ -11,8 +11,8 @@ test.describe('Home Page', () => {
     test('should have a sign in option', async ({ page }) => {
         await page.goto('/');
 
-        // Look for sign in related elements (Clerk provides these)
-        const signInButton = page.locator('text=Sign in').or(page.locator('text=Sign In'));
+        // Look for sign in button specifically (avoid matching paragraph text)
+        const signInButton = page.getByRole('button', { name: /sign in/i });
 
         // The button should be visible or there should be a way to authenticate
         await expect(signInButton.or(page.locator('[class*="clerk"]'))).toBeVisible();
@@ -22,7 +22,10 @@ test.describe('Home Page', () => {
         await page.goto('/');
 
         // Find the toggle button
-        const toggleButton = page.locator('button').filter({ has: page.locator('svg') }).first();
+        const toggleButton = page
+            .locator('button')
+            .filter({ has: page.locator('svg') })
+            .first();
 
         if (await toggleButton.isVisible()) {
             // Get initial theme

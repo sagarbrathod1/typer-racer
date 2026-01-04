@@ -5,12 +5,14 @@ export default authMiddleware({
     publicRoutes: ['/', '/typer-racer'],
     ignoredRoutes: ['/api/pingDatabase'],
     beforeAuth: (req) => {
-        if (req.nextUrl.pathname === '/api/pingDatabase' && 
-            req.headers.get('x-vercel-cron') === 'true') {
+        if (
+            req.nextUrl.pathname === '/api/pingDatabase' &&
+            req.headers.get('x-vercel-cron') === 'true'
+        ) {
             return NextResponse.next();
         }
         return undefined;
-    }
+    },
 });
 
 export const config = {

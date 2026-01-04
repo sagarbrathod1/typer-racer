@@ -10,22 +10,20 @@ const TypingLoader = ({ message, letters }: TypingLoaderProps) => (
                 <span className="inline-block">{message}</span>
                 <span className="inline-block animate-pulse">|</span>
             </div>
-            
+
             <div className="flex justify-center mt-6 space-x-2">
                 {letters.map((letter, index) => (
-                    <div 
+                    <div
                         key={index}
                         className={`${
-                            letter === ' ' 
-                                ? 'w-6 h-8 bg-gray-300 dark:bg-gray-600' 
+                            letter === ' '
+                                ? 'w-6 h-8 bg-gray-300 dark:bg-gray-600'
                                 : 'w-8 h-8 bg-gray-200 dark:bg-gray-700'
                         } border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center text-xs font-semibold animate-bounce`}
                         style={{ animationDelay: `${index * 0.1}s` }}
                     >
                         {letter === ' ' ? null : letter}
-                        {letter === ' ' && (
-                            <span className="sr-only">Space</span>
-                        )}
+                        {letter === ' ' && <span className="sr-only">Space</span>}
                     </div>
                 ))}
             </div>
@@ -33,4 +31,4 @@ const TypingLoader = ({ message, letters }: TypingLoaderProps) => (
     </div>
 );
 
-export default TypingLoader; 
+export default TypingLoader;

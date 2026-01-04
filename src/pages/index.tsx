@@ -24,7 +24,12 @@ export default function LandingPage() {
     }, [isSignedIn, isLoaded, router]);
 
     if (isLoading) {
-        return <TypingLoader message="Loading Typer Racer..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
+        return (
+            <TypingLoader
+                message="Loading Typer Racer..."
+                letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
+            />
+        );
     }
 
     return (

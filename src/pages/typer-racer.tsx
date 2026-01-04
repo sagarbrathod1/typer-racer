@@ -16,84 +16,84 @@ import { createPortal } from 'react-dom';
 const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
 const TypingStats = ({ wpm, seconds }: { wpm: number; seconds: number }) => (
-  <div>
-    <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
-    <h3 className="text-center sm:text-left">Time: {seconds}</h3>
-  </div>
+    <div>
+        <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
+        <h3 className="text-center sm:text-left">Time: {seconds}</h3>
+    </div>
 );
 
 const LoadingCorpus = () => (
-  <p className="whitespace-pre width-race-me-text">
-    {' '}
-    <span className="text-gray-400">
-      {Array(16).fill(' ').join('').slice(-30)}
-    </span>
-    Loading corpus...
-  </p>
+    <p className="whitespace-pre width-race-me-text">
+        {' '}
+        <span className="text-gray-400">{Array(16).fill(' ').join('').slice(-30)}</span>
+        Loading corpus...
+    </p>
 );
 
 const TypingInstructions = ({ startTime }: { startTime: number }) => (
-  <div className={'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')}>
-    <span>^</span>
-    <p>Start typing</p>
-  </div>
+    <div className={'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')}>
+        <span>^</span>
+        <p>Start typing</p>
+    </div>
 );
 
 const ResetButton = ({ startTime, resetState }: { startTime: number; resetState: () => void }) => (
-  <button
-    onClick={resetState}
-    disabled={!startTime}
-    className="block mx-auto mb-4 p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed"
-    aria-label="Reset race"
-    type="button"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className={'h-5 w-5 ' + (!startTime && 'text-gray-400')}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden="true"
+    <button
+        onClick={resetState}
+        disabled={!startTime}
+        className="block mx-auto mb-4 p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed"
+        aria-label="Reset race"
+        type="button"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-      />
-    </svg>
-  </button>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={'h-5 w-5 ' + (!startTime && 'text-gray-400')}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+        >
+            <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+        </svg>
+    </button>
 );
 
 const LeaderboardButton = ({ onClick }: { onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className="mb-4 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-sm transition-colors"
-  >
-    View Leaderboard
-  </button>
+    <button
+        onClick={onClick}
+        className="mb-4 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-sm transition-colors"
+    >
+        View Leaderboard
+    </button>
 );
 
 const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element | null => {
     const [mounted, setMounted] = useState(false);
-    
+
     useEffect(() => {
         setMounted(true);
         return () => setMounted(false);
     }, []);
 
     if (!mounted) return null;
-    
+
     const tryAgainSlot = document.getElementById('try-again-button-slot');
     if (!tryAgainSlot) return null;
-    
+
     return createPortal(
-        <button
-            onClick={resetState}
-            className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
-        >
-            Try again?
-        </button> as any,
+        (
+            <button
+                onClick={resetState}
+                className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
+            >
+                Try again?
+            </button>
+        ) as any,
         tryAgainSlot
     );
 };
@@ -183,7 +183,7 @@ export default function TyperRacer() {
         return () => {
             clearTimeout(timeoutId);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [seconds, startTime]);
 
     useKeyPress({
@@ -191,7 +191,7 @@ export default function TyperRacer() {
             if (skipMode) {
                 return;
             }
-            
+
             if (!startTime) {
                 setStartTime(currentTime);
             }
@@ -253,7 +253,12 @@ export default function TyperRacer() {
     }, []);
 
     if (isLoading) {
-        return <TypingLoader message="Clean your keyboard..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
+        return (
+            <TypingLoader
+                message="Clean your keyboard..."
+                letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
+            />
+        );
     }
 
     return (
@@ -324,4 +329,3 @@ export default function TyperRacer() {
         </>
     );
 }
-

@@ -79,7 +79,14 @@ describe('TypingBoard', () => {
 
     it('should slice outgoing chars to show last 30 on desktop', () => {
         const longOutgoing = 'c'.repeat(50);
-        render(<TypingBoard {...defaultProps} outgoingChars={longOutgoing} leftPadding="" isSm={false} />);
+        render(
+            <TypingBoard
+                {...defaultProps}
+                outgoingChars={longOutgoing}
+                leftPadding=""
+                isSm={false}
+            />
+        );
 
         // Should only show last 30 chars
         const outgoingSpan = screen.getByText('c'.repeat(30));
@@ -88,7 +95,14 @@ describe('TypingBoard', () => {
 
     it('should slice outgoing chars to show last 25 on mobile', () => {
         const longOutgoing = 'd'.repeat(50);
-        render(<TypingBoard {...defaultProps} outgoingChars={longOutgoing} leftPadding="" isSm={true} />);
+        render(
+            <TypingBoard
+                {...defaultProps}
+                outgoingChars={longOutgoing}
+                leftPadding=""
+                isSm={true}
+            />
+        );
 
         // Should only show last 25 chars on mobile
         const outgoingSpan = screen.getByText('d'.repeat(25));

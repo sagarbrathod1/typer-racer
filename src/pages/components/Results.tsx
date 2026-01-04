@@ -109,7 +109,6 @@ const Results: FunctionComponent<Props> = ({
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
                                 <button
                                     onClick={() => {
-                                        // Store score before sign-in so it can be submitted after
                                         sessionStorage.setItem(
                                             PENDING_SCORE_KEY,
                                             JSON.stringify({ wpm, wpmArray, errorCount })

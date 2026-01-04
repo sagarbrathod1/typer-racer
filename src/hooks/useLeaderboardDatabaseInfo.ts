@@ -21,11 +21,9 @@ const useLeaderboardDatabaseInfo = (): UseLeaderboardDatabaseInfo => {
             if (!isAuthenticated) return;
 
             try {
-                // Try to update existing user first, create if not found
                 try {
                     await updateUserScores({ newScore: value });
                 } catch {
-                    // User doesn't exist yet, create them
                     await createUser({ initialScore: value });
                 }
                 callback();
