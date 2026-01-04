@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 type UseKeyPressProps = {
     callback: (char: string) => void;
@@ -7,27 +7,35 @@ type UseKeyPressProps = {
 const useKeyPress = ({ callback }: UseKeyPressProps): string | null => {
     const [keyPressed, setKeyPressed] = useState<string | null>(null);
 
-    const downHandler = useCallback(
-        (event: KeyboardEvent) => {
+    const callbackRef = useRef(callback);
+    const keyPressedRef = useRef(keyPressed);
+
+    useEffect(() => {
+        callbackRef.current = callback;
+    }, [callback]);
+
+    useEffect(() => {
+        keyPressedRef.current = keyPressed;
+    }, [keyPressed]);
+
+    useEffect(() => {
+        const downHandler = (event: KeyboardEvent) => {
             const { key } = event;
             // Prevent Firefox's Quick Find feature for apostrophe
             if (key === "'") {
                 event.preventDefault();
             }
-            
-            if (keyPressed !== key && key.length === 1) {
+
+            if (keyPressedRef.current !== key && key.length === 1) {
                 setKeyPressed(key);
-                callback && callback(key);
+                callbackRef.current?.(key);
             }
-        },
-        [callback, keyPressed, setKeyPressed]
-    );
+        };
 
-    const upHandler = useCallback(() => {
-        setKeyPressed(null);
-    }, [setKeyPressed]);
+        const upHandler = () => {
+            setKeyPressed(null);
+        };
 
-    useEffect(() => {
         window.addEventListener('keydown', downHandler);
         window.addEventListener('keyup', upHandler);
 
@@ -35,7 +43,7 @@ const useKeyPress = ({ callback }: UseKeyPressProps): string | null => {
             window.removeEventListener('keydown', downHandler);
             window.removeEventListener('keyup', upHandler);
         };
-    });
+    }, []);
 
     return keyPressed;
 };
