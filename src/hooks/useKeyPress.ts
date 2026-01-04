@@ -7,11 +7,9 @@ type UseKeyPressProps = {
 const useKeyPress = ({ callback }: UseKeyPressProps): string | null => {
     const [keyPressed, setKeyPressed] = useState<string | null>(null);
 
-    // Use refs to avoid re-registering listeners when these change
     const callbackRef = useRef(callback);
     const keyPressedRef = useRef(keyPressed);
 
-    // Keep refs in sync with latest values
     useEffect(() => {
         callbackRef.current = callback;
     }, [callback]);
@@ -45,7 +43,7 @@ const useKeyPress = ({ callback }: UseKeyPressProps): string | null => {
             window.removeEventListener('keydown', downHandler);
             window.removeEventListener('keyup', upHandler);
         };
-    }, []); // Empty deps - only register once on mount
+    }, []);
 
     return keyPressed;
 };
