@@ -23,20 +23,24 @@ export default function MultiplayerResults({
     return (
         <div className="space-y-8">
             {/* Winner Banner */}
-            <div className={`p-6 rounded-lg ${
-                isTie
-                    ? 'bg-gray-100 dark:bg-gray-800'
-                    : didWin
+            <div
+                className={`p-6 rounded-lg ${
+                    isTie
+                        ? 'bg-gray-100 dark:bg-gray-800'
+                        : didWin
                         ? 'bg-green-100 dark:bg-green-900'
                         : 'bg-red-100 dark:bg-red-900'
-            }`}>
-                <h2 className={`text-3xl font-bold ${
-                    isTie
-                        ? 'text-gray-700 dark:text-gray-300'
-                        : didWin
+                }`}
+            >
+                <h2
+                    className={`text-3xl font-bold ${
+                        isTie
+                            ? 'text-gray-700 dark:text-gray-300'
+                            : didWin
                             ? 'text-green-700 dark:text-green-300'
                             : 'text-red-700 dark:text-red-300'
-                }`}>
+                    }`}
+                >
                     {isTie ? "It's a Tie!" : didWin ? 'You Win!' : 'You Lose!'}
                 </h2>
                 {opponentDisconnected && (
@@ -71,11 +75,19 @@ export default function MultiplayerResults({
                             </td>
                         </tr>
                         <tr>
-                            <td className={`py-3 font-medium ${opponentDisconnected ? 'text-gray-400' : ''}`}>
+                            <td
+                                className={`py-3 font-medium ${
+                                    opponentDisconnected ? 'text-gray-400' : ''
+                                }`}
+                            >
                                 {opponentUsername}
                                 {opponentDisconnected && ' (DNF)'}
                             </td>
-                            <td className={`text-right py-3 ${opponentDisconnected ? 'text-gray-400' : ''}`}>
+                            <td
+                                className={`text-right py-3 ${
+                                    opponentDisconnected ? 'text-gray-400' : ''
+                                }`}
+                            >
                                 {opponentDisconnected ? '-' : opponentWpm}
                             </td>
                             <td className="text-right py-3">

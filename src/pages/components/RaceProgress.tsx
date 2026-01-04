@@ -13,13 +13,11 @@ type Props = {
 
 export default function RaceProgress({ myProgress, opponentProgress, totalChars }: Props) {
     const myPercentage = totalChars > 0 ? (myProgress.charsTyped / totalChars) * 100 : 0;
-    const opponentPercentage = opponentProgress && totalChars > 0
-        ? (opponentProgress.charsTyped / totalChars) * 100
-        : 0;
+    const opponentPercentage =
+        opponentProgress && totalChars > 0 ? (opponentProgress.charsTyped / totalChars) * 100 : 0;
 
     return (
         <div className="mb-6 space-y-3">
-            {/* My Progress */}
             <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                     <span className="font-medium">{myProgress.username} (You)</span>
@@ -37,7 +35,11 @@ export default function RaceProgress({ myProgress, opponentProgress, totalChars 
             {opponentProgress && (
                 <div className="space-y-1">
                     <div className="flex justify-between text-sm">
-                        <span className={`font-medium ${opponentProgress.disconnected ? 'text-gray-400' : ''}`}>
+                        <span
+                            className={`font-medium ${
+                                opponentProgress.disconnected ? 'text-gray-400' : ''
+                            }`}
+                        >
                             {opponentProgress.username}
                             {opponentProgress.disconnected && ' (Disconnected)'}
                         </span>
