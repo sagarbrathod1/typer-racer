@@ -34,7 +34,15 @@ const TypingHero = () => {
     );
 };
 
-const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
+const FeatureCard = ({
+    icon,
+    title,
+    description,
+}: {
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+}) => (
     <div className="p-6 rounded-xl border border-gray-200 dark:border-gray-700">
         <div className="text-3xl mb-3">{icon}</div>
         <h3 className="text-lg font-semibold mb-2">{title}</h3>
@@ -64,7 +72,12 @@ export default function LandingPage() {
     }, [isSignedIn, isLoaded, router]);
 
     if (isLoading || !mounted) {
-        return <TypingLoader message="Loading Typer Racer..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
+        return (
+            <TypingLoader
+                message="Loading Typer Racer..."
+                letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
+            />
+        );
     }
 
     const currentTheme = resolvedTheme || theme;
@@ -73,7 +86,10 @@ export default function LandingPage() {
         <>
             <Head>
                 <title>Typer Racer - Test Your Typing Speed</title>
-                <meta name="description" content="Think you can type faster than me? Race against my score, challenge friends in real-time multiplayer, and climb the global leaderboard." />
+                <meta
+                    name="description"
+                    content="Think you can type faster than me? Race against my score, challenge friends in real-time multiplayer, and climb the global leaderboard."
+                />
                 <link rel="icon" href={currentTheme === 'light' ? AngelIcon.src : DevilIcon.src} />
             </Head>
             <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
@@ -87,8 +103,8 @@ export default function LandingPage() {
                         </h1>
                         <TypingHero />
                         <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
-                            Race against me and see how your typing stacks up.
-                            Or challenge your friends in real-time multiplayer.
+                            Race against me and see how your typing stacks up. Or challenge your
+                            friends in real-time multiplayer.
                         </p>
 
                         {/* CTAs */}
@@ -100,7 +116,7 @@ export default function LandingPage() {
                                 Race Me
                             </button>
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
-                                <button className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-4 px-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-lg">
+                                <button className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-4 px-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-lg">
                                     Sign In for Leaderboard
                                 </button>
                             </SignInButton>

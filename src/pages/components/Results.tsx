@@ -126,14 +126,19 @@ const Results: FunctionComponent<Props> = ({
                     );
                 })}
                 <div className="flex flex-col items-center mb-1">
-                    {!skipMode && !wasSaved && wpm > 0 && gameResult && !submitLeaderboardLoading && !isGuest && (
-                        <button
-                            onClick={handleSubmit}
-                            className="mt-4 mb-6 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
-                        >
-                            Submit
-                        </button>
-                    )}
+                    {!skipMode &&
+                        !wasSaved &&
+                        wpm > 0 &&
+                        gameResult &&
+                        !submitLeaderboardLoading &&
+                        !isGuest && (
+                            <button
+                                onClick={handleSubmit}
+                                className="mt-4 mb-6 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
+                            >
+                                Submit
+                            </button>
+                        )}
                     {!skipMode && isGuest && wpm > 0 && (
                         <div className="mt-4 mb-6 flex flex-col items-center gap-2">
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
@@ -141,7 +146,12 @@ const Results: FunctionComponent<Props> = ({
                                     onClick={() => {
                                         sessionStorage.setItem(
                                             PENDING_SCORE_KEY,
-                                            JSON.stringify({ wpm, wpmArray, errorCount, gameResult })
+                                            JSON.stringify({
+                                                wpm,
+                                                wpmArray,
+                                                errorCount,
+                                                gameResult,
+                                            })
                                         );
                                     }}
                                     className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
@@ -152,9 +162,7 @@ const Results: FunctionComponent<Props> = ({
                             <span className="text-sm text-gray-500">Your WPM: {wpm}</span>
                         </div>
                     )}
-                    {submitError && (
-                        <span className="my-2 text-red-500">{submitError}</span>
-                    )}
+                    {submitError && <span className="my-2 text-red-500">{submitError}</span>}
                     {wasSaved && <span className="my-2">Your WPM was successfully saved!</span>}
                     {submitLeaderboardLoading && (
                         <div className="mt-4 mb-6 py-1.5 px-3">
