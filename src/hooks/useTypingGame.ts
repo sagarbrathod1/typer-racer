@@ -24,6 +24,7 @@ type UseTypingGameReturn = {
     errorMap: Record<string, number>;
     wpmArray: number[];
     startTime: number;
+    endTime: number;
     skipMode: boolean;
     isGameOver: boolean;
     isGameStarted: boolean;
@@ -57,6 +58,7 @@ export default function useTypingGame({
     const [currentChar, setCurrentChar] = useState<string>('');
     const [incomingChars, setIncomingChars] = useState<string>('');
     const [startTime, setStartTime] = useState<number>(0);
+    const [endTime, setEndTime] = useState<number>(0);
     const [wordCount, setWordCount] = useState<number>(0);
     const [charCount, setCharCount] = useState<number>(0);
     const [wpmArray, setWpmArray] = useState<number[]>([]);
@@ -86,11 +88,16 @@ export default function useTypingGame({
         if (seconds <= 0 || !startTime) return;
 
         const timeoutId = setTimeout(() => {
-            setSeconds((prev) => prev - 1);
+            const newSeconds = seconds - 1;
+            setSeconds(newSeconds);
             const durationInMinutes = (Date.now() - startTime) / 60000.0;
             const newWpm = Number((charCountRef.current / 5 / durationInMinutes).toFixed(2));
             setWpm(newWpm);
             setWpmArray((prev) => [...prev, newWpm]);
+
+            if (newSeconds === 0) {
+                setEndTime(Date.now());
+            }
         }, 1000);
 
         return () => clearTimeout(timeoutId);
@@ -139,6 +146,7 @@ export default function useTypingGame({
         setCurrentChar(corpus.charAt(0));
         setIncomingChars(corpus.substr(1));
         setStartTime(0);
+        setEndTime(0);
         setWordCount(0);
         setCharCount(0);
         setWpm(0);
@@ -172,6 +180,7 @@ export default function useTypingGame({
         errorMap,
         wpmArray,
         startTime,
+        endTime,
         skipMode,
         isGameOver,
         isGameStarted,

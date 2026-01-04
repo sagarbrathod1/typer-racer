@@ -12,6 +12,7 @@ import Results from './components/Results';
 import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 import { useUser } from '@clerk/nextjs';
 import { createPortal } from 'react-dom';
+import { GameResult } from '@/types/models';
 
 const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
@@ -37,13 +38,7 @@ const TypingInstructions = ({ visible }: { visible: boolean }) => (
     </div>
 );
 
-const ResetButton = ({
-    enabled,
-    resetState,
-}: {
-    enabled: boolean;
-    resetState: () => void;
-}) => (
+const ResetButton = ({ enabled, resetState }: { enabled: boolean; resetState: () => void }) => (
     <button
         onClick={resetState}
         disabled={!enabled}
@@ -151,6 +146,16 @@ export default function TyperRacer() {
 
     const isGuest = !isSignedIn;
 
+    const gameResult: GameResult | null = useMemo(() => {
+        if (!game.startTime || !game.endTime || game.skipMode) return null;
+        return {
+            startTime: game.startTime,
+            endTime: game.endTime,
+            charsTyped: game.charCount,
+            corpusLength: (words || '').length,
+        };
+    }, [game.startTime, game.endTime, game.charCount, words, game.skipMode]);
+
     if (isLoading) {
         return (
             <TypingLoader
@@ -216,6 +221,7 @@ export default function TyperRacer() {
                                 theme={theme}
                                 skipMode={game.skipMode}
                                 isGuest={isGuest}
+                                gameResult={gameResult}
                             />
                         )}
                         {game.isGameOver && !game.skipMode && (

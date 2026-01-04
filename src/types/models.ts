@@ -18,3 +18,10 @@ export type LeaderboardDatabaseModel = {
     username: string;
     scores: string;
 };
+
+export type GameResult = {
+    startTime: number;
+    endTime: number;
+    charsTyped: number;
+    corpusLength: number;
+};

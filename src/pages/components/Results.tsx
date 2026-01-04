@@ -1,5 +1,5 @@
 import MyResponsiveLine from '@/components/LineGraph/MyResponsiveLine';
-import { UserModel } from '@/types/models';
+import { UserModel, GameResult } from '@/types/models';
 import { FunctionComponent, useCallback, useState } from 'react';
 import Loader from 'react-loader-spinner';
 import { SignInButton } from '@clerk/nextjs';
@@ -16,10 +16,11 @@ type Props = {
     errorCount: number;
     errorMap?: Record<string, number>;
     leaderboard: UserModel[];
-    postLeaderboard: (score: number, callback: () => void) => Promise<void>;
+    postLeaderboard: (gameResult: GameResult, callback: () => void) => Promise<void>;
     submitLeaderboardLoading: boolean;
     skipMode?: boolean;
     isGuest?: boolean;
+    gameResult: GameResult | null;
 };
 
 const Results: FunctionComponent<Props> = ({
@@ -35,13 +36,27 @@ const Results: FunctionComponent<Props> = ({
     submitLeaderboardLoading,
     skipMode = false,
     isGuest = false,
+    gameResult,
 }) => {
     const [wasSaved, setWasSaved] = useState<boolean>(false);
     const [showHeatmap, setShowHeatmap] = useState<boolean>(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const afterSaveCallback = useCallback(() => {
         setWasSaved(true);
-    }, [setWasSaved]);
+        setSubmitError(null);
+    }, []);
+
+    const handleSubmit = useCallback(async () => {
+        if (!gameResult) return;
+
+        setSubmitError(null);
+        try {
+            await postLeaderboard(gameResult, afterSaveCallback);
+        } catch (error) {
+            setSubmitError(error instanceof Error ? error.message : 'Failed to submit score');
+        }
+    }, [gameResult, postLeaderboard, afterSaveCallback]);
 
     const sagarWpmData = sagarWpm ? sagarWpm.map((e, i) => ({ x: i + 1, y: e })) : [];
     const wpmArrayData = wpmArray ? wpmArray.map((e, i) => ({ x: i + 1, y: e })) : [];
@@ -111,9 +126,9 @@ const Results: FunctionComponent<Props> = ({
                     );
                 })}
                 <div className="flex flex-col items-center mb-1">
-                    {!skipMode && !wasSaved && wpm > 0 && !submitLeaderboardLoading && !isGuest && (
+                    {!skipMode && !wasSaved && wpm > 0 && gameResult && !submitLeaderboardLoading && !isGuest && (
                         <button
-                            onClick={() => postLeaderboard(wpm, afterSaveCallback)}
+                            onClick={handleSubmit}
                             className="mt-4 mb-6 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
                         >
                             Submit
@@ -126,7 +141,7 @@ const Results: FunctionComponent<Props> = ({
                                     onClick={() => {
                                         sessionStorage.setItem(
                                             PENDING_SCORE_KEY,
-                                            JSON.stringify({ wpm, wpmArray, errorCount })
+                                            JSON.stringify({ wpm, wpmArray, errorCount, gameResult })
                                         );
                                     }}
                                     className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
@@ -136,6 +151,9 @@ const Results: FunctionComponent<Props> = ({
                             </SignInButton>
                             <span className="text-sm text-gray-500">Your WPM: {wpm}</span>
                         </div>
+                    )}
+                    {submitError && (
+                        <span className="my-2 text-red-500">{submitError}</span>
                     )}
                     {wasSaved && <span className="my-2">Your WPM was successfully saved!</span>}
                     {submitLeaderboardLoading && (
