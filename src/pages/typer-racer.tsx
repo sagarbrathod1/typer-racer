@@ -116,7 +116,6 @@ export default function TyperRacer() {
     const { isSignedIn, isLoaded } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const [skipMode, setSkipMode] = useState<boolean>(false);
-    const [pendingScore, setPendingScore] = useState<number | null>(null);
     const isGuest = !isSignedIn;
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
@@ -131,12 +130,11 @@ export default function TyperRacer() {
         if (isLoaded) {
             setIsLoading(false);
 
-            // Check if there's a pending score to submit after sign-in
+            // Restore results state after sign-in so user can click Submit
             if (isSignedIn && typeof window !== 'undefined') {
                 const stored = sessionStorage.getItem(PENDING_SCORE_KEY);
                 if (stored) {
                     const score = JSON.parse(stored);
-                    setPendingScore(score.wpm);
                     setWpm(score.wpm);
                     setWpmArray(score.wpmArray || []);
                     setErrorCount(score.errorCount || 0);
@@ -146,15 +144,6 @@ export default function TyperRacer() {
             }
         }
     }, [isLoaded, isSignedIn]);
-
-    // Auto-submit pending score once authenticated
-    useEffect(() => {
-        if (pendingScore && isSignedIn && !loadingLeaderboardData) {
-            saveScore(pendingScore, () => {
-                setPendingScore(null);
-            });
-        }
-    }, [pendingScore, isSignedIn, loadingLeaderboardData, saveScore]);
 
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
 
