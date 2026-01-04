@@ -15,6 +15,13 @@ jest.mock('react-loader-spinner', () => ({
 }));
 
 describe('Results', () => {
+    const mockGameResult = {
+        startTime: Date.now() - 30000,
+        endTime: Date.now(),
+        charsTyped: 300,
+        corpusLength: 500,
+    };
+
     const defaultProps = {
         sagarWpm: ['50', '55', '60', '65', '70'],
         wpmArray: [40, 45, 50, 55, 60],
@@ -30,6 +37,7 @@ describe('Results', () => {
         postLeaderboard: jest.fn(),
         submitLeaderboardLoading: false,
         skipMode: false,
+        gameResult: mockGameResult,
     };
 
     beforeEach(() => {
@@ -95,7 +103,7 @@ describe('Results', () => {
     });
 
     it('should call postLeaderboard when Submit is clicked', async () => {
-        const mockPostLeaderboard = jest.fn().mockImplementation((score, callback) => {
+        const mockPostLeaderboard = jest.fn().mockImplementation((gameResult, callback) => {
             callback();
             return Promise.resolve();
         });
@@ -104,7 +112,7 @@ describe('Results', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /Submit/i }));
 
-        expect(mockPostLeaderboard).toHaveBeenCalledWith(60, expect.any(Function));
+        expect(mockPostLeaderboard).toHaveBeenCalledWith(mockGameResult, expect.any(Function));
     });
 
     it('should show success message after saving', async () => {
@@ -197,6 +205,7 @@ describe('Results - Accuracy Calculations', () => {
         postLeaderboard: jest.fn(),
         submitLeaderboardLoading: false,
         skipMode: true,
+        gameResult: null,
     };
 
     it('should calculate accuracy correctly for various error counts', () => {
