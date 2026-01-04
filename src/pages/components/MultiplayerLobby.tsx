@@ -48,9 +48,7 @@ export default function MultiplayerLobby({ onCreateRoom, onJoinRoom, onBack }: P
             ) : (
                 <form onSubmit={handleJoinSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Enter Room Code
-                        </label>
+                        <label className="block text-sm font-medium mb-2">Enter Room Code</label>
                         <input
                             type="text"
                             value={joinCode}

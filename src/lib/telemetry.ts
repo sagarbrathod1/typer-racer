@@ -1,4 +1,10 @@
-import { WebTracerProvider, BatchSpanProcessor, SimpleSpanProcessor, ConsoleSpanExporter, SpanProcessor } from '@opentelemetry/sdk-trace-web';
+import {
+    WebTracerProvider,
+    BatchSpanProcessor,
+    SimpleSpanProcessor,
+    ConsoleSpanExporter,
+    SpanProcessor,
+} from '@opentelemetry/sdk-trace-web';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { resourceFromAttributes } from '@opentelemetry/resources';

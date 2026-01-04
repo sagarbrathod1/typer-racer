@@ -237,7 +237,9 @@ export default function TyperRacer() {
                             {showLeaderboardButton && (
                                 <div className="flex justify-center">
                                     <LeaderboardButton onClick={game.skipToResults} />
-                                    <MultiplayerButton onClick={() => router.push('/multiplayer')} />
+                                    <MultiplayerButton
+                                        onClick={() => router.push('/multiplayer')}
+                                    />
                                 </div>
                             )}
                         </div>
