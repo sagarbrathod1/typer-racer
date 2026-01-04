@@ -113,6 +113,7 @@ export default function TyperRacer() {
     const [charCount, setCharCount] = useState<number>(0);
     const [wpmArray, setWpmArray] = useState<number[]>([]);
     const [errorCount, setErrorCount] = useState<number>(0);
+    const [errorMap, setErrorMap] = useState<Record<string, number>>({});
     const { isSignedIn, isLoaded } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const [skipMode, setSkipMode] = useState<boolean>(false);
@@ -225,6 +226,10 @@ export default function TyperRacer() {
             } else {
                 setIncorrectChar(true);
                 setErrorCount(errorCount + 1);
+                setErrorMap((prev) => ({
+                    ...prev,
+                    [currentChar]: (prev[currentChar] || 0) + 1,
+                }));
             }
         },
     });
@@ -242,6 +247,8 @@ export default function TyperRacer() {
         setWpmArray([]);
         setIncorrectChar(false);
         setSkipMode(false);
+        setErrorCount(0);
+        setErrorMap({});
     }, [corpus, isSm]);
 
     const skipToResults = useCallback(() => {
@@ -303,6 +310,7 @@ export default function TyperRacer() {
                                 wpmArray={wpmArray}
                                 corpus={corpus}
                                 errorCount={errorCount}
+                                errorMap={errorMap}
                                 leaderboard={leaderboard}
                                 postLeaderboard={saveScore}
                                 submitLeaderboardLoading={loadingLeaderboardData}
