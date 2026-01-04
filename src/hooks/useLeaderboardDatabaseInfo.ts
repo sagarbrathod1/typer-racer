@@ -1,13 +1,8 @@
 import { useQuery, useMutation } from 'convex/react';
+import { useConvexAuth } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { UserModel } from '@/types/models';
 import { useCallback, useMemo } from 'react';
-
-type UseLeaderboardDatabaseInfoParams = {
-    userId: string;
-    username: string;
-    email?: string;
-};
 
 export type UseLeaderboardDatabaseInfo = {
     loading: boolean;
@@ -15,40 +10,30 @@ export type UseLeaderboardDatabaseInfo = {
     getLeaderboard: () => UserModel[];
 };
 
-const useLeaderboardDatabaseInfo = ({
-    userId,
-    username,
-    email,
-}: UseLeaderboardDatabaseInfoParams): UseLeaderboardDatabaseInfo => {
+const useLeaderboardDatabaseInfo = (): UseLeaderboardDatabaseInfo => {
+    const { isAuthenticated } = useConvexAuth();
     const leaderboard = useQuery(api.leaderboard.getLeaderboard);
     const createUser = useMutation(api.leaderboard.createUser);
     const updateUserScores = useMutation(api.leaderboard.updateUserScores);
-    const currentUser = useQuery(api.leaderboard.getUserByUserId, userId ? { userId } : "skip");
 
     const saveScore = useCallback(
         async (value: number, callback: () => void): Promise<void> => {
-            if (!userId || !username) return;
+            if (!isAuthenticated) return;
 
             try {
-                if (!currentUser) {
-                    await createUser({
-                        userId,
-                        username,
-                        email,
-                        initialScore: value,
-                    });
-                } else {
-                    await updateUserScores({
-                        userId,
-                        newScore: value,
-                    });
+                // Try to update existing user first, create if not found
+                try {
+                    await updateUserScores({ newScore: value });
+                } catch {
+                    // User doesn't exist yet, create them
+                    await createUser({ initialScore: value });
                 }
                 callback();
             } catch (error) {
                 console.error('Error saving score:', error);
             }
         },
-        [userId, username, email, currentUser, createUser, updateUserScores]
+        [isAuthenticated, createUser, updateUserScores]
     );
 
     const getLeaderboard = useMemo(() => {

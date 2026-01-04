@@ -26,36 +26,58 @@ export const getUserByUserId = query({
 
 export const createUser = mutation({
   args: {
-    userId: v.string(),
-    username: v.string(),
-    email: v.optional(v.string()),
     initialScore: v.number(),
   },
   handler: async (ctx, args) => {
+    // Verify user is authenticated
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Must be authenticated to save score");
+    }
+
+    const userId = identity.subject;
+    const username = identity.nickname ?? identity.name ?? "Anonymous";
+    const email = identity.email;
+
+    // Check if user already exists by userId
+    const existingByUserId = await ctx.db
+      .query("leaderboard")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .first();
+
+    const now = Date.now();
+
+    if (existingByUserId) {
+      // Update existing user with new score
+      await ctx.db.patch(existingByUserId._id, {
+        scores: [...existingByUserId.scores, args.initialScore],
+        updatedAt: now,
+      });
+      return existingByUserId._id;
+    }
+
     // Check if user already exists by username (for migration compatibility)
     const existingByUsername = await ctx.db
       .query("leaderboard")
-      .withIndex("by_username", (q) => q.eq("username", args.username))
+      .withIndex("by_username", (q) => q.eq("username", username))
       .first();
-    
-    const now = Date.now();
-    
+
     if (existingByUsername) {
       // Update existing user with userId and new score
       await ctx.db.patch(existingByUsername._id, {
-        userId: args.userId,
-        email: args.email,
+        userId: userId,
+        email: email,
         scores: [...existingByUsername.scores, args.initialScore],
         updatedAt: now,
       });
       return existingByUsername._id;
     }
-    
+
     // Create new user
     return await ctx.db.insert("leaderboard", {
-      userId: args.userId,
-      username: args.username,
-      email: args.email,
+      userId: userId,
+      username: username,
+      email: email,
       scores: [args.initialScore],
       createdAt: now,
       updatedAt: now,
@@ -65,26 +87,33 @@ export const createUser = mutation({
 
 export const updateUserScores = mutation({
   args: {
-    userId: v.string(),
     newScore: v.number(),
   },
   handler: async (ctx, args) => {
+    // Verify user is authenticated
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Must be authenticated to save score");
+    }
+
+    const userId = identity.subject;
+
     const user = await ctx.db
       .query("leaderboard")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .first();
-    
+
     if (!user) {
       throw new Error("User not found");
     }
 
     const updatedScores = [...user.scores, args.newScore];
-    
+
     await ctx.db.patch(user._id, {
       scores: updatedScores,
       updatedAt: Date.now(),
     });
-    
+
     return { success: true };
   },
 });

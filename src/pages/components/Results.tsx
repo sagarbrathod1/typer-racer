@@ -4,6 +4,8 @@ import { FunctionComponent, useCallback, useState } from 'react';
 import Loader from 'react-loader-spinner';
 import { SignInButton } from '@clerk/nextjs';
 
+const PENDING_SCORE_KEY = 'typer-racer-pending-score';
+
 type Props = {
     sagarWpm: string[];
     wpmArray: number[];
@@ -105,7 +107,16 @@ const Results: FunctionComponent<Props> = ({
                     {!skipMode && isGuest && wpm > 0 && (
                         <div className="mt-4 mb-6 flex flex-col items-center gap-2">
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
-                                <button className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors">
+                                <button
+                                    onClick={() => {
+                                        // Store score before sign-in so it can be submitted after
+                                        sessionStorage.setItem(
+                                            PENDING_SCORE_KEY,
+                                            JSON.stringify({ wpm, wpmArray, errorCount })
+                                        );
+                                    }}
+                                    className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
+                                >
                                     Sign in to save score
                                 </button>
                             </SignInButton>

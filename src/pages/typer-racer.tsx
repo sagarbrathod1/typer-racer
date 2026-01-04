@@ -9,20 +9,11 @@ import useDatabaseInfo from '../hooks/useDatabaseInfo';
 import useKeyPress from '../hooks/useKeyPress';
 import { useIsSm } from '../hooks/useMediaQuery';
 import Results from './components/Results';
-import { GetServerSideProps } from 'next';
-import { buildClerkProps, clerkClient, getAuth } from '@clerk/nextjs/server';
 import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/router';
 import { createPortal } from 'react-dom';
 
-type Props = {
-    userInfo: {
-        id: string;
-        username: string;
-        emailAddresses?: Array<{ emailAddress: string }>;
-    } | null;
-};
+const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
 const TypingStats = ({ wpm, seconds }: { wpm: number; seconds: number }) => (
   <div>
@@ -107,7 +98,7 @@ const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element
     );
 };
 
-export default function TyperRacer({ userInfo }: Props) {
+export default function TyperRacer() {
     const isSm = useIsSm();
     const [wpm, setWpm] = useState<number>(0);
     const [seconds, setTime] = useState<number>(30);
@@ -123,28 +114,47 @@ export default function TyperRacer({ userInfo }: Props) {
     const [wpmArray, setWpmArray] = useState<number[]>([]);
     const [errorCount, setErrorCount] = useState<number>(0);
     const { isSignedIn, isLoaded } = useUser();
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [skipMode, setSkipMode] = useState<boolean>(false);
+    const [pendingScore, setPendingScore] = useState<number | null>(null);
     const isGuest = !isSignedIn;
-
-    useEffect(() => {
-        if (isLoaded) {
-            // Allow both signed-in users and guests to play
-            setIsLoading(false);
-        }
-    }, [isLoaded]);
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
     const {
         loading: loadingLeaderboardData,
         saveScore,
         getLeaderboard,
-    } = useLeaderboardDatabaseInfo({
-        userId: userInfo?.id ?? '',
-        username: userInfo?.username ?? 'Guest',
-        email: userInfo?.emailAddresses?.[0]?.emailAddress,
-    });
+    } = useLeaderboardDatabaseInfo();
+
+    // Check for pending score after sign-in
+    useEffect(() => {
+        if (isLoaded) {
+            setIsLoading(false);
+
+            // Check if there's a pending score to submit after sign-in
+            if (isSignedIn && typeof window !== 'undefined') {
+                const stored = sessionStorage.getItem(PENDING_SCORE_KEY);
+                if (stored) {
+                    const score = JSON.parse(stored);
+                    setPendingScore(score.wpm);
+                    setWpm(score.wpm);
+                    setWpmArray(score.wpmArray || []);
+                    setErrorCount(score.errorCount || 0);
+                    setTime(0); // Show results
+                    sessionStorage.removeItem(PENDING_SCORE_KEY);
+                }
+            }
+        }
+    }, [isLoaded, isSignedIn]);
+
+    // Auto-submit pending score once authenticated
+    useEffect(() => {
+        if (pendingScore && isSignedIn && !loadingLeaderboardData) {
+            saveScore(pendingScore, () => {
+                setPendingScore(null);
+            });
+        }
+    }, [pendingScore, isSignedIn, loadingLeaderboardData, saveScore]);
 
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
 
@@ -326,21 +336,3 @@ export default function TyperRacer({ userInfo }: Props) {
     );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { userId } = getAuth(context.req);
-
-    // Allow guests - return null userInfo if not signed in
-    if (!userId) {
-        return { props: { userInfo: null } };
-    }
-
-    const user = await clerkClient.users.getUser(userId);
-    const {
-        __clerk_ssr_state: {
-            // @ts-ignore
-            user: userInfo,
-        },
-    } = buildClerkProps(context.req, { user });
-
-    return { props: { userInfo } };
-};

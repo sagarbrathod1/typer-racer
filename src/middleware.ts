@@ -2,7 +2,7 @@ import { authMiddleware } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
 
 export default authMiddleware({
-    publicRoutes: ['/'],
+    publicRoutes: ['/', '/typer-racer'],
     ignoredRoutes: ['/api/pingDatabase'],
     beforeAuth: (req) => {
         if (req.nextUrl.pathname === '/api/pingDatabase' && 
