@@ -1,5 +1,4 @@
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-web';
+import { WebTracerProvider, BatchSpanProcessor, SimpleSpanProcessor, ConsoleSpanExporter, SpanProcessor } from '@opentelemetry/sdk-trace-web';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -22,21 +21,22 @@ export function initTelemetry() {
         'deployment.environment': process.env.NODE_ENV || 'development',
     });
 
-    const provider = new WebTracerProvider({ resource });
+    const spanProcessors: SpanProcessor[] = [];
 
     // Only add OTLP exporter if endpoint is configured
     if (otlpEndpoint) {
         const exporter = new OTLPTraceExporter({
             url: `${otlpEndpoint}/v1/traces`,
         });
-        provider.addSpanProcessor(new BatchSpanProcessor(exporter));
+        spanProcessors.push(new BatchSpanProcessor(exporter));
     }
 
     // Console exporter for development
     if (process.env.NODE_ENV === 'development') {
-        const { ConsoleSpanExporter, SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-web');
-        provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+        spanProcessors.push(new SimpleSpanProcessor(new ConsoleSpanExporter()));
     }
+
+    const provider = new WebTracerProvider({ resource, spanProcessors });
 
     provider.register({
         contextManager: new ZoneContextManager(),
