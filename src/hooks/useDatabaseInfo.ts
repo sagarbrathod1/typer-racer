@@ -4,7 +4,7 @@ import { UserModel } from '@/types/models';
 
 const useDatabaseInfo = () => {
     const corpus = useQuery(api.corpus.getCorpus);
-    
+
     return {
         words: corpus?.words || '',
         sagarWpm: corpus?.sagar_wpm || [],

@@ -9,105 +9,96 @@ import useDatabaseInfo from '../hooks/useDatabaseInfo';
 import useKeyPress from '../hooks/useKeyPress';
 import { useIsSm } from '../hooks/useMediaQuery';
 import Results from './components/Results';
-import { GetServerSideProps } from 'next';
-import { buildClerkProps, clerkClient, getAuth } from '@clerk/nextjs/server';
 import useLeaderboardDatabaseInfo from '@/hooks/useLeaderboardDatabaseInfo';
 import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/router';
 import { createPortal } from 'react-dom';
 
-type Props = {
-    userInfo: {
-        id: string;
-        username: string;
-        emailAddresses?: Array<{ emailAddress: string }>;
-    };
-};
+const PENDING_SCORE_KEY = 'typer-racer-pending-score';
 
 const TypingStats = ({ wpm, seconds }: { wpm: number; seconds: number }) => (
-  <div>
-    <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
-    <h3 className="text-center sm:text-left">Time: {seconds}</h3>
-  </div>
+    <div>
+        <h3 className="text-center sm:text-left">WPM: {wpm}</h3>
+        <h3 className="text-center sm:text-left">Time: {seconds}</h3>
+    </div>
 );
 
 const LoadingCorpus = () => (
-  <p className="whitespace-pre width-race-me-text">
-    {' '}
-    <span className="text-gray-400">
-      {Array(16).fill(' ').join('').slice(-30)}
-    </span>
-    Loading corpus...
-  </p>
+    <p className="whitespace-pre width-race-me-text">
+        {' '}
+        <span className="text-gray-400">{Array(16).fill(' ').join('').slice(-30)}</span>
+        Loading corpus...
+    </p>
 );
 
 const TypingInstructions = ({ startTime }: { startTime: number }) => (
-  <div className={'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')}>
-    <span>^</span>
-    <p>Start typing</p>
-  </div>
+    <div className={'flex-col justify-center mb-4 ' + (startTime && 'hidden-animate')}>
+        <span>^</span>
+        <p>Start typing</p>
+    </div>
 );
 
 const ResetButton = ({ startTime, resetState }: { startTime: number; resetState: () => void }) => (
-  <button
-    onClick={resetState}
-    disabled={!startTime}
-    className="block mx-auto mb-4 p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed"
-    aria-label="Reset race"
-    type="button"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className={'h-5 w-5 ' + (!startTime && 'text-gray-400')}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      aria-hidden="true"
+    <button
+        onClick={resetState}
+        disabled={!startTime}
+        className="block mx-auto mb-4 p-1 rounded focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed"
+        aria-label="Reset race"
+        type="button"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-      />
-    </svg>
-  </button>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={'h-5 w-5 ' + (!startTime && 'text-gray-400')}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+        >
+            <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+        </svg>
+    </button>
 );
 
 const LeaderboardButton = ({ onClick }: { onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className="mb-4 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-sm transition-colors"
-  >
-    View Leaderboard
-  </button>
+    <button
+        onClick={onClick}
+        className="mb-4 border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-sm transition-colors"
+    >
+        View Leaderboard
+    </button>
 );
 
 const TryAgainButton = ({ resetState }: { resetState: () => void }): JSX.Element | null => {
     const [mounted, setMounted] = useState(false);
-    
+
     useEffect(() => {
         setMounted(true);
         return () => setMounted(false);
     }, []);
 
     if (!mounted) return null;
-    
+
     const tryAgainSlot = document.getElementById('try-again-button-slot');
     if (!tryAgainSlot) return null;
-    
+
     return createPortal(
-        <button
-            onClick={resetState}
-            className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
-        >
-            Try again?
-        </button> as any,
+        (
+            <button
+                onClick={resetState}
+                className="border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-sm transition-colors"
+            >
+                Try again?
+            </button>
+        ) as any,
         tryAgainSlot
     );
 };
 
-export default function TyperRacer({ userInfo }: Props) {
+export default function TyperRacer() {
     const isSm = useIsSm();
     const [wpm, setWpm] = useState<number>(0);
     const [seconds, setTime] = useState<number>(30);
@@ -123,30 +114,35 @@ export default function TyperRacer({ userInfo }: Props) {
     const [wpmArray, setWpmArray] = useState<number[]>([]);
     const [errorCount, setErrorCount] = useState<number>(0);
     const { isSignedIn, isLoaded } = useUser();
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [skipMode, setSkipMode] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (isLoaded) {
-            if (!isSignedIn) {
-                router.push('/');
-            } else {
-                setIsLoading(false);
-            }
-        }
-    }, [isSignedIn, isLoaded, router]);
+    const isGuest = !isSignedIn;
 
     const { words, sagarWpm, loading: loadingCorpusData } = useDatabaseInfo();
     const {
         loading: loadingLeaderboardData,
         saveScore,
         getLeaderboard,
-    } = useLeaderboardDatabaseInfo({
-        userId: userInfo.id,
-        username: userInfo.username,
-        email: userInfo.emailAddresses?.[0]?.emailAddress,
-    });
+    } = useLeaderboardDatabaseInfo();
+
+    // Check for pending score after sign-in
+    useEffect(() => {
+        if (isLoaded) {
+            setIsLoading(false);
+
+            if (isSignedIn && typeof window !== 'undefined') {
+                const stored = sessionStorage.getItem(PENDING_SCORE_KEY);
+                if (stored) {
+                    const score = JSON.parse(stored);
+                    setWpm(score.wpm);
+                    setWpmArray(score.wpmArray || []);
+                    setErrorCount(score.errorCount || 0);
+                    setTime(0);
+                    sessionStorage.removeItem(PENDING_SCORE_KEY);
+                }
+            }
+        }
+    }, [isLoaded, isSignedIn]);
 
     const leaderboard = useMemo(() => getLeaderboard(), [getLeaderboard]);
 
@@ -186,7 +182,7 @@ export default function TyperRacer({ userInfo }: Props) {
         return () => {
             clearTimeout(timeoutId);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [seconds, startTime]);
 
     useKeyPress({
@@ -194,7 +190,7 @@ export default function TyperRacer({ userInfo }: Props) {
             if (skipMode) {
                 return;
             }
-            
+
             if (!startTime) {
                 setStartTime(currentTime);
             }
@@ -256,7 +252,12 @@ export default function TyperRacer({ userInfo }: Props) {
     }, []);
 
     if (isLoading) {
-        return <TypingLoader message="Clean your keyboard..." letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']} />;
+        return (
+            <TypingLoader
+                message="Clean your keyboard..."
+                letters={['R', 'A', 'C', 'E', ' ', 'M', 'E']}
+            />
+        );
     }
 
     return (
@@ -307,6 +308,7 @@ export default function TyperRacer({ userInfo }: Props) {
                                 submitLeaderboardLoading={loadingLeaderboardData}
                                 theme={theme}
                                 skipMode={skipMode}
+                                isGuest={isGuest}
                             />
                         )}
                         {seconds == 0 && !skipMode && <TryAgainButton resetState={resetState} />}
@@ -326,16 +328,3 @@ export default function TyperRacer({ userInfo }: Props) {
         </>
     );
 }
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-    const { userId } = getAuth(context.req);
-    const user = userId ? await clerkClient.users.getUser(userId) : undefined;
-    const {
-        __clerk_ssr_state: {
-            // @ts-ignore
-            user: userInfo,
-        },
-    } = buildClerkProps(context.req, { user });
-
-    return { props: { userInfo } };
-};

@@ -74,7 +74,7 @@ describe('WPM Validation', () => {
     });
 
     it('should accept typical WPM values', () => {
-        [30, 50, 70, 100, 150].forEach(wpm => {
+        [30, 50, 70, 100, 150].forEach((wpm) => {
             expect(isReasonableWpm(wpm)).toBe(true);
         });
     });

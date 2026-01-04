@@ -1,8 +1,7 @@
 import '@/styles/globals.css';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from 'next-themes';
-import { ConvexProvider } from 'convex/react';
-import { convex } from '@/lib/convex';
+import { ConvexClientProvider } from '@/lib/convex';
 import type { AppProps, NextWebVitalsMetric } from 'next/app';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -29,13 +28,13 @@ export function reportWebVitals(metric: NextWebVitalsMetric) {
 export default function App({ Component, pageProps }: AppProps) {
     return (
         <ClerkProvider {...pageProps}>
-            <ConvexProvider client={convex}>
+            <ConvexClientProvider>
                 <ThemeProvider defaultTheme="light" attribute="class" enableSystem={false}>
                     <ErrorBoundary>
                         <Component {...pageProps} />
                     </ErrorBoundary>
                 </ThemeProvider>
-            </ConvexProvider>
+            </ConvexClientProvider>
         </ClerkProvider>
     );
 }
