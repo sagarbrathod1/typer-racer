@@ -10,7 +10,7 @@ const MistakeHeatmap: FunctionComponent<Props> = ({ errorMap = {}, theme }) => {
         if (!errorMap || typeof errorMap !== 'object') return [];
         return Object.entries(errorMap)
             .sort(([, a], [, b]) => b - a)
-            .slice(0, 10); // Top 10 problem characters
+            .slice(0, 10);
     }, [errorMap]);
 
     const maxErrors = useMemo(() => {
@@ -22,7 +22,6 @@ const MistakeHeatmap: FunctionComponent<Props> = ({ errorMap = {}, theme }) => {
         return null;
     }
 
-    // Get color intensity based on error count
     const getBarColor = (count: number) => {
         const intensity = count / maxErrors;
         if (intensity > 0.7) return 'bg-red-500';
@@ -30,7 +29,6 @@ const MistakeHeatmap: FunctionComponent<Props> = ({ errorMap = {}, theme }) => {
         return 'bg-yellow-400';
     };
 
-    // Format character for display (show space as "Space")
     const formatChar = (char: string) => {
         if (char === ' ') return 'Space';
         if (char === '\n') return 'Enter';
@@ -40,9 +38,7 @@ const MistakeHeatmap: FunctionComponent<Props> = ({ errorMap = {}, theme }) => {
 
     return (
         <div className="mt-3 mb-4">
-            <h4 className="text-xs text-gray-500 dark:text-gray-500 mb-2">
-                Top mistakes
-            </h4>
+            <h4 className="text-xs text-gray-500 dark:text-gray-500 mb-2">Top mistakes</h4>
             <div className="space-y-1">
                 {sortedErrors.map(([char, count]) => (
                     <div key={char} className="flex items-center gap-2">
@@ -51,7 +47,9 @@ const MistakeHeatmap: FunctionComponent<Props> = ({ errorMap = {}, theme }) => {
                         </span>
                         <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
                             <div
-                                className={`h-full ${getBarColor(count)} transition-all duration-300`}
+                                className={`h-full ${getBarColor(
+                                    count
+                                )} transition-all duration-300`}
                                 style={{ width: `${(count / maxErrors) * 100}%` }}
                             />
                         </div>

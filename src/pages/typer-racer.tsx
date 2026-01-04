@@ -113,7 +113,7 @@ export default function TyperRacer() {
     const [charCount, setCharCount] = useState<number>(0);
     const [wpmArray, setWpmArray] = useState<number[]>([]);
     const [errorCount, setErrorCount] = useState<number>(0);
-    const [errorMap, setErrorMap] = useState<Record<string, number>>({}); // Track errors per character
+    const [errorMap, setErrorMap] = useState<Record<string, number>>({});
     const { isSignedIn, isLoaded } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const [skipMode, setSkipMode] = useState<boolean>(false);
@@ -226,10 +226,9 @@ export default function TyperRacer() {
             } else {
                 setIncorrectChar(true);
                 setErrorCount(errorCount + 1);
-                // Track which character was expected when error occurred
-                setErrorMap(prev => ({
+                setErrorMap((prev) => ({
                     ...prev,
-                    [currentChar]: (prev[currentChar] || 0) + 1
+                    [currentChar]: (prev[currentChar] || 0) + 1,
                 }));
             }
         },
