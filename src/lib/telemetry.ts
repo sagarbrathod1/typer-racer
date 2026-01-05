@@ -1,4 +1,10 @@
-import { WebTracerProvider, BatchSpanProcessor, SimpleSpanProcessor, ConsoleSpanExporter, SpanProcessor } from '@opentelemetry/sdk-trace-web';
+import {
+    WebTracerProvider,
+    BatchSpanProcessor,
+    SimpleSpanProcessor,
+    ConsoleSpanExporter,
+    SpanProcessor,
+} from '@opentelemetry/sdk-trace-web';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -45,7 +51,12 @@ export function initTelemetry() {
     registerInstrumentations({
         instrumentations: [
             new FetchInstrumentation({
-                propagateTraceHeaderCorsUrls: [/.*/],
+                // Only propagate trace headers to our own backend, not third-party services like Clerk
+                propagateTraceHeaderCorsUrls: [
+                    /localhost/,
+                    /vercel\.app\/api/,
+                    /convex\.cloud/,
+                ],
                 clearTimingResources: true,
             }),
             new DocumentLoadInstrumentation(),

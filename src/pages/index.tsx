@@ -120,6 +120,12 @@ export default function LandingPage() {
                             >
                                 Race Me
                             </button>
+                            <button
+                                onClick={() => router.push('/multiplayer')}
+                                className="border-2 border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white font-semibold py-4 px-8 rounded-full transition-colors text-lg"
+                            >
+                                Multiplayer
+                            </button>
                             <SignInButton mode="modal" redirectUrl="/typer-racer">
                                 <button className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold py-4 px-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-lg">
                                     Sign In for Leaderboard

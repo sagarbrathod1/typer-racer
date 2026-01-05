@@ -7,6 +7,11 @@ type UseTypingGameProps = {
     corpus: string;
     isSm: boolean;
     disabled?: boolean;
+    // Optional callbacks for multiplayer sync
+    onProgress?: (charCount: number, wpm: number) => void;
+    onFinish?: (finalWpm: number, charCount: number) => void;
+    // External start time for multiplayer (synced from server)
+    externalStartTime?: number;
 };
 
 type UseTypingGameReturn = {
@@ -44,6 +49,9 @@ export default function useTypingGame({
     corpus,
     isSm,
     disabled = false,
+    onProgress,
+    onFinish,
+    externalStartTime,
 }: UseTypingGameProps): UseTypingGameReturn {
     const paddingLength = isSm ? 25 : 30;
 
@@ -71,9 +79,30 @@ export default function useTypingGame({
         charCountRef.current = charCount;
     }, [charCount]);
 
+    // Refs for callbacks to avoid stale closures
+    const onProgressRef = useRef(onProgress);
+    const onFinishRef = useRef(onFinish);
+    const startTimeRef = useRef(startTime);
+    useEffect(() => {
+        onProgressRef.current = onProgress;
+    }, [onProgress]);
+    useEffect(() => {
+        onFinishRef.current = onFinish;
+    }, [onFinish]);
+    useEffect(() => {
+        startTimeRef.current = startTime;
+    }, [startTime]);
+
     // Derived state
     const isGameOver = seconds === 0;
     const isGameStarted = startTime > 0;
+
+    // Use external start time if provided (for multiplayer sync)
+    useEffect(() => {
+        if (externalStartTime && externalStartTime > 0 && startTime === 0) {
+            setStartTime(externalStartTime);
+        }
+    }, [externalStartTime, startTime]);
 
     // Initialize from corpus
     useEffect(() => {
@@ -97,6 +126,7 @@ export default function useTypingGame({
 
             if (newSeconds === 0) {
                 setEndTime(Date.now());
+                onFinishRef.current?.(newWpm, charCountRef.current);
             }
         }, 1000);
 
@@ -108,9 +138,13 @@ export default function useTypingGame({
         callback: (key) => {
             if (skipMode || disabled) return;
 
-            if (!startTime) {
+            // Auto-start timer on first keypress only if no external start time
+            if (!startTime && !externalStartTime) {
                 setStartTime(Date.now());
             }
+
+            // Don't process keys if timer hasn't started yet (waiting for external start)
+            if (!startTime) return;
 
             if (seconds === 0) return;
 
@@ -124,10 +158,28 @@ export default function useTypingGame({
                 setOutgoingChars((prev) => prev + currentChar);
                 setCurrentChar(incomingChars.charAt(0));
                 setIncomingChars((prev) => prev.substring(1));
-                setCharCount((prev) => prev + 1);
+                const newCharCount = charCountRef.current + 1;
+                setCharCount(newCharCount);
 
                 if (incomingChars.charAt(0) === ' ') {
                     setWordCount((prev) => prev + 1);
+                }
+
+                // Calculate current WPM for callbacks
+                const now = Date.now();
+                const durationInMinutes = (now - startTimeRef.current) / 60000.0;
+                const currentWpm = durationInMinutes > 0
+                    ? Number((newCharCount / 5 / durationInMinutes).toFixed(2))
+                    : 0;
+
+                // Call onProgress callback
+                onProgressRef.current?.(newCharCount, currentWpm);
+
+                // If corpus is complete, finish the game
+                if (incomingChars.length === 0) {
+                    setEndTime(now);
+                    setSeconds(0);
+                    onFinishRef.current?.(currentWpm, newCharCount);
                 }
             } else {
                 setIncorrectChar(true);

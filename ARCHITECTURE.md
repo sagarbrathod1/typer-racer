@@ -43,6 +43,7 @@
 ## Data Flow
 
 ### 1. Game Start Flow
+
 ```
 User lands on / → Clicks "Race Me" → Redirected to /typer-racer
                                             │
@@ -58,6 +59,7 @@ User lands on / → Clicks "Race Me" → Redirected to /typer-racer
 ```
 
 ### 2. Typing Game Flow
+
 ```
 Corpus loaded from Convex
          │
@@ -77,6 +79,7 @@ Timer hits 0 → Show results + leaderboard
 ```
 
 ### 3. Score Submission Flow
+
 ```
 User clicks Submit
          │
@@ -125,33 +128,36 @@ leaderboard: {
 ## Key Technical Decisions
 
 ### Why Convex over Supabase?
-- Real-time subscriptions out of the box
-- Automatic TypeScript type generation
-- Simpler API for this use case
-- Better developer experience for small projects
+
+-   Real-time subscriptions out of the box
+-   Automatic TypeScript type generation
+-   Simpler API for this use case
+-   Better developer experience for small projects
 
 ### Why Server-Side WPM Validation?
-- Prevents cheating via browser console
-- Validates timing and character counts
-- Rejects impossible scores (>250 WPM)
-- Single source of truth for score calculation
+
+-   Prevents cheating via browser console
+-   Validates timing and character counts
+-   Rejects impossible scores (>250 WPM)
+-   Single source of truth for score calculation
 
 ### Why Custom useTypingGame Hook?
-- Isolates game logic from UI
-- Makes testing easier
-- Reduces component complexity
-- Reusable if adding new game modes
+
+-   Isolates game logic from UI
+-   Makes testing easier
+-   Reduces component complexity
+-   Reusable if adding new game modes
 
 ## Performance Considerations
 
-- Character-by-character rendering optimized with minimal re-renders
-- Left-padding technique keeps current character centered
-- WPM calculated once per second (not per keystroke)
-- Convex subscriptions for real-time leaderboard updates
+-   Character-by-character rendering optimized with minimal re-renders
+-   Left-padding technique keeps current character centered
+-   WPM calculated once per second (not per keystroke)
+-   Convex subscriptions for real-time leaderboard updates
 
 ## Security
 
-- Clerk handles all authentication
-- Server-side score validation prevents manipulation
-- User IDs from Clerk (not client-provided)
-- Protected routes via middleware
+-   Clerk handles all authentication
+-   Server-side score validation prevents manipulation
+-   User IDs from Clerk (not client-provided)
+-   Protected routes via middleware
