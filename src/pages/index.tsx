@@ -136,7 +136,7 @@ export default function LandingPage() {
                             />
                             <FeatureCard
                                 icon={<span>🏁</span>}
-                                title="Race Friends"
+                                title="Race Friends (Coming Soon)"
                                 description="1v1 multiplayer with room codes. See their progress live as you type."
                             />
                             <FeatureCard
