@@ -3,7 +3,7 @@ import ToggleButton from '@/components/ToggleButton/ToggleButton';
 import TypingLoader from '@/components/TypingLoader';
 import { useTheme } from 'next-themes';
 import Head from 'next/head';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GetServerSideProps } from 'next';
 import { buildClerkProps, clerkClient, getAuth } from '@clerk/nextjs/server';
 import { useUser } from '@clerk/nextjs';
@@ -16,7 +16,7 @@ import WaitingRoom from './components/WaitingRoom';
 import RaceProgress from './components/RaceProgress';
 import MultiplayerResults from './components/MultiplayerResults';
 import TypingBoard from './components/TypingBoard';
-import useKeyPress from '@/hooks/useKeyPress';
+import useTypingGame from '@/hooks/useTypingGame';
 import { useIsSm } from '@/hooks/useMediaQuery';
 
 type Props = {
@@ -54,17 +54,11 @@ export default function Multiplayer({ userInfo }: Props) {
     const [isHost, setIsHost] = useState(false);
     const [countdown, setCountdown] = useState(3);
     const [error, setError] = useState<string>('');
-
     const [corpus, setCorpus] = useState<string>('');
-    const [leftPadding, setLeftPadding] = useState(new Array(isSm ? 25 : 30).fill(' ').join(''));
-    const [outgoingChars, setOutgoingChars] = useState<string>('');
-    const [incorrectChar, setIncorrectChar] = useState<boolean>(false);
-    const [currentChar, setCurrentChar] = useState<string>('');
-    const [incomingChars, setIncomingChars] = useState<string>('');
-    const [charCount, setCharCount] = useState<number>(0);
-    const [wpm, setWpm] = useState<number>(0);
-    const [seconds, setSeconds] = useState<number>(30);
-    const [startTime, setStartTime] = useState<number>(0);
+    const [raceStartTime, setRaceStartTime] = useState<number>(0);
+
+    // Throttle for progress updates
+    const lastProgressUpdateRef = useRef(0);
 
     const createRace = useMutation(api.races.createRace);
     const joinRace = useMutation(api.races.joinRace);
@@ -79,6 +73,48 @@ export default function Multiplayer({ userInfo }: Props) {
 
     const tabIcon = useMemo(() => (theme === 'light' ? AngelIcon.src : DevilIcon.src), [theme]);
 
+    // Progress update callback with throttling
+    const handleProgress = useCallback(
+        (newCharCount: number, currentWpm: number) => {
+            if (!raceId) return;
+            const now = Date.now();
+            if (now - lastProgressUpdateRef.current > 500) {
+                updateProgress({
+                    raceId,
+                    userId: userInfo.id,
+                    charsTyped: newCharCount,
+                    wpm: currentWpm,
+                });
+                lastProgressUpdateRef.current = now;
+            }
+        },
+        [raceId, updateProgress, userInfo.id]
+    );
+
+    // Finish callback
+    const handleFinish = useCallback(
+        (finalWpm: number, charsTyped: number) => {
+            if (!raceId) return;
+            finishRace({
+                raceId,
+                userId: userInfo.id,
+                finalWpm,
+                charsTyped,
+            });
+        },
+        [raceId, finishRace, userInfo.id]
+    );
+
+    // Use the typing game hook
+    const game = useTypingGame({
+        corpus,
+        isSm,
+        disabled: gameState !== 'racing',
+        externalStartTime: raceStartTime,
+        onProgress: handleProgress,
+        onFinish: handleFinish,
+    });
+
     useEffect(() => {
         if (isLoaded) {
             if (!isSignedIn) {
@@ -89,6 +125,7 @@ export default function Multiplayer({ userInfo }: Props) {
         }
     }, [isSignedIn, isLoaded, router]);
 
+    // Sync game state with race status from server
     useEffect(() => {
         if (!race) return;
 
@@ -97,12 +134,13 @@ export default function Multiplayer({ userInfo }: Props) {
             setCountdown(3);
         } else if (race.status === 'racing' && gameState !== 'racing') {
             setGameState('racing');
-            setStartTime(race.startTime || Date.now());
+            setRaceStartTime(race.startTime || Date.now());
         } else if (race.status === 'finished' && gameState !== 'finished') {
             setGameState('finished');
         }
     }, [race?.status, gameState, race?.startTime, race]);
 
+    // Countdown timer
     useEffect(() => {
         if (gameState !== 'countdown') return;
 
@@ -115,85 +153,6 @@ export default function Multiplayer({ userInfo }: Props) {
             }
         }
     }, [countdown, gameState, isHost, raceId, startRacing]);
-
-    useEffect(() => {
-        if (gameState !== 'racing' || !startTime) return;
-
-        if (seconds > 0) {
-            const timer = setTimeout(() => {
-                setSeconds((prev) => prev - 1);
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [seconds, gameState, startTime]);
-
-    useEffect(() => {
-        if (gameState !== 'racing' || !startTime || charCount === 0) return;
-
-        const durationInMinutes = (Date.now() - startTime) / 60000.0;
-        const newWpm = Number((charCount / 5 / durationInMinutes).toFixed(2));
-        setWpm(newWpm);
-    }, [charCount, gameState, startTime]);
-
-    useEffect(() => {
-        if (seconds === 0 && gameState === 'racing' && raceId) {
-            finishRace({ raceId, userId: userInfo.id, finalWpm: wpm, charsTyped: charCount });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [seconds, gameState]);
-
-    const [lastProgressUpdate, setLastProgressUpdate] = useState(0);
-
-    useKeyPress({
-        callback: (key) => {
-            if (gameState !== 'racing' || seconds === 0) return;
-
-            if (key === currentChar) {
-                setIncorrectChar(false);
-                if (leftPadding.length > 0) {
-                    setLeftPadding(leftPadding.substring(1));
-                }
-
-                const newOutgoing = outgoingChars + currentChar;
-                setOutgoingChars(newOutgoing);
-                setCurrentChar(incomingChars.charAt(0));
-                setIncomingChars(incomingChars.substring(1));
-
-                const newCharCount = charCount + 1;
-                setCharCount(newCharCount);
-
-                if (incomingChars.length === 0) {
-                    if (raceId) {
-                        const durationInMinutes = (Date.now() - startTime) / 60000.0;
-                        const finalWpm = Number((newCharCount / 5 / durationInMinutes).toFixed(2));
-                        finishRace({
-                            raceId,
-                            userId: userInfo.id,
-                            finalWpm,
-                            charsTyped: newCharCount,
-                        });
-                    }
-                    return;
-                }
-
-                const now = Date.now();
-                if (raceId && now - lastProgressUpdate > 500) {
-                    const durationInMinutes = (now - startTime) / 60000.0;
-                    const currentWpm = Number((newCharCount / 5 / durationInMinutes).toFixed(2));
-                    updateProgress({
-                        raceId,
-                        userId: userInfo.id,
-                        charsTyped: newCharCount,
-                        wpm: currentWpm,
-                    });
-                    setLastProgressUpdate(now);
-                }
-            } else {
-                setIncorrectChar(true);
-            }
-        },
-    });
 
     const handleCreateRoom = useCallback(async () => {
         try {
@@ -223,8 +182,6 @@ export default function Multiplayer({ userInfo }: Props) {
                 setRaceId(result.raceId);
                 setRoomCode(code.toUpperCase());
                 setCorpus(result.corpus);
-                setCurrentChar(result.corpus.charAt(0));
-                setIncomingChars(result.corpus.substring(1));
                 setIsHost(false);
                 setGameState('waiting');
             } catch (e) {
@@ -262,24 +219,16 @@ export default function Multiplayer({ userInfo }: Props) {
         setRoomCode('');
         setIsHost(false);
         setCorpus('');
-        setLeftPadding(new Array(isSm ? 25 : 30).fill(' ').join(''));
-        setOutgoingChars('');
-        setIncorrectChar(false);
-        setCurrentChar('');
-        setIncomingChars('');
-        setCharCount(0);
-        setWpm(0);
-        setSeconds(30);
-        setStartTime(0);
+        setRaceStartTime(0);
         setCountdown(3);
         setError('');
-    }, [isSm]);
+        game.resetState();
+    }, [game]);
 
+    // Sync corpus from server (for host who doesn't get it from joinRace)
     useEffect(() => {
         if (race?.corpus && !corpus) {
             setCorpus(race.corpus);
-            setCurrentChar(race.corpus.charAt(0));
-            setIncomingChars(race.corpus.substring(1));
         }
     }, [race?.corpus, corpus]);
 
@@ -347,7 +296,7 @@ export default function Multiplayer({ userInfo }: Props) {
                     {(gameState === 'racing' || gameState === 'countdown') && (
                         <>
                             <RaceProgress
-                                myProgress={{ charsTyped: charCount, wpm, username: displayName }}
+                                myProgress={{ charsTyped: game.charCount, wpm: game.wpm, username: displayName }}
                                 opponentProgress={
                                     opponentProgress
                                         ? {
@@ -362,16 +311,16 @@ export default function Multiplayer({ userInfo }: Props) {
                             />
                             <div className="mb-4">
                                 <h3 className="text-center">
-                                    WPM: {wpm} | Time: {seconds}s
+                                    WPM: {game.wpm} | Time: {game.seconds}s
                                 </h3>
                             </div>
                             <TypingBoard
-                                currentChar={currentChar}
-                                incomingChars={incomingChars}
-                                incorrectChar={incorrectChar}
+                                currentChar={game.currentChar}
+                                incomingChars={game.incomingChars}
+                                incorrectChar={game.incorrectChar}
                                 isSm={isSm}
-                                leftPadding={leftPadding}
-                                outgoingChars={outgoingChars}
+                                leftPadding={game.leftPadding}
+                                outgoingChars={game.outgoingChars}
                             />
                             {opponentProgress?.disconnected && (
                                 <div className="mt-4 p-2 bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-100 rounded">
@@ -383,7 +332,7 @@ export default function Multiplayer({ userInfo }: Props) {
 
                     {gameState === 'finished' && (
                         <MultiplayerResults
-                            myWpm={myProgress?.wpm || wpm}
+                            myWpm={myProgress?.wpm || game.wpm}
                             opponentWpm={opponentProgress?.wpm || 0}
                             myUsername={displayName}
                             opponentUsername={opponentUsername || 'Opponent'}

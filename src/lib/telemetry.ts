@@ -51,7 +51,12 @@ export function initTelemetry() {
     registerInstrumentations({
         instrumentations: [
             new FetchInstrumentation({
-                propagateTraceHeaderCorsUrls: [/.*/],
+                // Only propagate trace headers to our own backend, not third-party services like Clerk
+                propagateTraceHeaderCorsUrls: [
+                    /localhost/,
+                    /vercel\.app\/api/,
+                    /convex\.cloud/,
+                ],
                 clearTimingResources: true,
             }),
             new DocumentLoadInstrumentation(),
