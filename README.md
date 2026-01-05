@@ -4,33 +4,33 @@ A real-time typing speed competition app where you race against pre-recorded WPM
 
 ## Features
 
-- 30-second typing challenges with real-time WPM tracking
-- Character-by-character validation with visual feedback
-- Global leaderboard with persistent scores
-- Dark/light theme support
-- Mobile-responsive design
-- Google SSO authentication
+-   30-second typing challenges with real-time WPM tracking
+-   Character-by-character validation with visual feedback
+-   Global leaderboard with persistent scores
+-   Dark/light theme support
+-   Mobile-responsive design
+-   Google SSO authentication
 
 ## Tech Stack
 
-| Category      | Technology                                    |
-| ------------- | --------------------------------------------- |
-| Framework     | [Next.js 14](https://nextjs.org/)             |
-| Language      | [TypeScript](https://www.typescriptlang.org/) |
-| Styling       | [Tailwind CSS](https://tailwindcss.com/)      |
-| Auth          | [Clerk](https://clerk.com/)                   |
-| Database      | [Convex](https://www.convex.dev/)             |
-| Charts        | [Nivo](https://nivo.rocks/)                   |
-| Deployment    | [Vercel](https://vercel.com/)                 |
+| Category   | Technology                                    |
+| ---------- | --------------------------------------------- |
+| Framework  | [Next.js 14](https://nextjs.org/)             |
+| Language   | [TypeScript](https://www.typescriptlang.org/) |
+| Styling    | [Tailwind CSS](https://tailwindcss.com/)      |
+| Auth       | [Clerk](https://clerk.com/)                   |
+| Database   | [Convex](https://www.convex.dev/)             |
+| Charts     | [Nivo](https://nivo.rocks/)                   |
+| Deployment | [Vercel](https://vercel.com/)                 |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- Yarn
-- Clerk account (for auth)
-- Convex account (for database)
+-   Node.js 18+
+-   Yarn
+-   Clerk account (for auth)
+-   Convex account (for database)
 
 ### Installation
 
